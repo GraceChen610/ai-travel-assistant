@@ -152,7 +152,7 @@ export default function TravelPlanner() {
         </Group>
       )}
 
-      <Group spacing="xs" mt="xs" justify="flex-start" align="center">
+      {/* <Group spacing="xs" mt="xs" justify="flex-start" align="center">
         <ThemeIcon variant="light" color="#70d573" radius="xl">
           <IconToolsKitchen3 stroke={2} />
         </ThemeIcon>
@@ -160,7 +160,7 @@ export default function TravelPlanner() {
           <strong>飲食偏好：</strong>
         </Text>
         <Text size="sm">{form.food_preferences.join("、") || "未選擇"}</Text>
-      </Group>
+      </Group> */}
 
       <Group spacing="xs" mt="xs">
         <ThemeIcon variant="light" color="#70d573" radius="xl">
@@ -178,7 +178,7 @@ export default function TravelPlanner() {
         <ThemeIcon variant="light" color="pink" radius="xl">
           <IconMessageDots stroke={2} />
         </ThemeIcon>
-        <Text size="sm">ㄎ
+        <Text size="sm">
           <strong>備註：</strong>
           {form.notes || "無"}
         </Text>
@@ -190,7 +190,8 @@ export default function TravelPlanner() {
     <Box
       maw={1200}
       mx="auto"
-      h="80vh"
+      h="90vh"
+      hx="auto"
       w={900}
       px="xl"
       py="xl"
@@ -210,7 +211,7 @@ export default function TravelPlanner() {
         >
           <Stepper.Step label="基本資訊" description="出發地與抵達" />
           <Stepper.Step label="旅遊偏好" description="美食與活動" />
-          <Stepper.Step label="需求備註" description="特殊需求" />
+          <Stepper.Step label="行程規劃" description="調整行程" />
           <Stepper.Step label="完成" description="確認與產出行程" />
         </Stepper>
         <Group align="flex-start" justify="space-between" spacing="xl" mt="xl">
@@ -274,7 +275,7 @@ export default function TravelPlanner() {
 
             {active === 1 && (
               <Stack mt="xl">
-                <div>
+                {/* <div>
                   <Text color="#59a803">
                     <strong> 飲食偏好</strong>
                   </Text>
@@ -296,7 +297,7 @@ export default function TravelPlanner() {
                       color={themeColor}
                     />
                   ))}
-                </div>
+                </div> */}
                 <div>
                   <Text color="#59a803" mb="sm">
                     <strong> 活動偏好</strong>
@@ -322,21 +323,26 @@ export default function TravelPlanner() {
                     />
                   ))}
                 </div>
+                <div>
+                  <Textarea
+                    label="📝 需求備註"
+                    value={form.notes}
+                    onChange={(e) =>
+                      setForm({ ...form, notes: e.target.value })
+                    }
+                    resize="vertical"
+                    maxRows={10}
+                    rows="9"
+                    styles={{
+                      label: { color: "#e64980" },
+                      input: { borderRadius: "6px" },
+                    }}
+                  />
+                </div>
               </Stack>
             )}
 
-            {active === 2 && (
-              <Stack mt="xl">
-                <Textarea
-                  label="📝 需求備註"
-                  value={form.notes}
-                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  resize="vertical"
-                  maxRows={10}
-                  rows="9"
-                />
-              </Stack>
-            )}
+            {active === 2 && <Stack mt="xl">塞地圖</Stack>}
 
             {active === 3 && (
               <Box mt="xl">
