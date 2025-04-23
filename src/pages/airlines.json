@@ -1,0 +1,71 @@
+{
+  "AA": {
+    "name": "American Airlines",
+    "zh": "美國航空",
+    "country": "United States"
+  },
+  "AC": { "name": "Air Canada", "zh": "加拿大航空", "country": "Canada" },
+  "AF": { "name": "Air France", "zh": "法國航空", "country": "France" },
+  "BA": {
+    "name": "British Airways",
+    "zh": "英國航空",
+    "country": "United Kingdom"
+  },
+  "BR": { "name": "EVA Air", "zh": "長榮航空", "country": "Taiwan" },
+  "CA": { "name": "Air China", "zh": "中國國際航空", "country": "China" },
+  "CI": { "name": "China Airlines", "zh": "中華航空", "country": "Taiwan" },
+  "CX": { "name": "Cathay Pacific", "zh": "國泰航空", "country": "Hong Kong" },
+  "CZ": {
+    "name": "China Southern Airlines",
+    "zh": "中國南方航空",
+    "country": "China"
+  },
+  "DL": {
+    "name": "Delta Air Lines",
+    "zh": "達美航空",
+    "country": "United States"
+  },
+  "EK": {
+    "name": "Emirates",
+    "zh": "阿聯酋航空",
+    "country": "United Arab Emirates"
+  },
+  "EY": {
+    "name": "Etihad Airways",
+    "zh": "阿提哈德航空",
+    "country": "United Arab Emirates"
+  },
+  "GA": {
+    "name": "Garuda Indonesia",
+    "zh": "印尼鷹航",
+    "country": "Indonesia"
+  },
+  "JL": { "name": "Japan Airlines", "zh": "日本航空", "country": "Japan" },
+   "JQ": {
+    "name": "Jetstar Airways",
+    "zh": "捷星航空",
+    "country": "Australia",
+    "logo": "https://upload.wikimedia.org/wikipedia/en/thumb/1/1e/Jetstar_Airways_logo.svg/512px-Jetstar_Airways_logo.svg.png"
+  },
+  "KE": { "name": "Korean Air", "zh": "大韓航空", "country": "South Korea" },
+  "LH": { "name": "Lufthansa", "zh": "德國漢莎航空", "country": "Germany" },
+  "NH": { "name": "All Nippon Airways", "zh": "全日空", "country": "Japan" },
+  "NZ": {
+    "name": "Air New Zealand",
+    "zh": "紐西蘭航空",
+    "country": "New Zealand"
+  },
+  "QF": { "name": "Qantas", "zh": "澳洲航空", "country": "Australia" },
+  "SQ": {
+    "name": "Singapore Airlines",
+    "zh": "新加坡航空",
+    "country": "Singapore"
+  },
+  "TG": { "name": "Thai Airways", "zh": "泰國航空", "country": "Thailand" },
+  "UA": {
+    "name": "United Airlines",
+    "zh": "聯合航空",
+    "country": "United States"
+  },
+  "VN": { "name": "Vietnam Airlines", "zh": "越南航空", "country": "Vietnam" }
+}

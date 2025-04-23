@@ -26,25 +26,86 @@ import {
 import { DatePicker } from "@mantine/dates";
 import { useMediaQuery } from "@mantine/hooks";
 import dayjs from "dayjs";
+import Itinerary from "./Itinerary";
+// import { fakedata } from "./fData";
+// import { fakedata } from "./fakeData_10";
+import FlightCardSelector from "./FlightCardSelector";
+
+const BASEURL = import.meta.env.VITE_BASEURL;
 
 const themeColor = "#ff672b"; // 主题颜色
 
+
 export default function TravelPlanner() {
   const [active, setActive] = useState(0);
+  const [selectedId, setSelectedId] = useState(null);
+  const [loading, setLoading] = useState(false); // Add loading state
+
   const [form, setForm] = useState({
     departure_city: "",
+    originLocationCode: "", //旅客出發的城市/機場 IATA 代碼，例如波士頓的 BOS
+    destinationLocationCode: "", //旅客抵達的城市/機場 IATA 代碼，例如洛杉磯的 LAX
     destination_city: "",
-    start_date: null,
-    end_date: null,
+    departureDate: null, //出發日期(格式:2017-12-25)
+    returnDate: null, //回程日期
+    adults: 1, //成人數量
     food_preferences: [],
     activity_preferences: [],
     notes: "",
   });
+  const [data, setData] = useState([
+    {
+      出發日期: "10:30 AM, May 10",
+      出發機場: "Tokyo, Japan, Narita International Airport, Terminal 1",
+      抵達日期: "4:30 AM, May 10",
+      抵達機場: "USA, Los Angeles, Los Angeles International Airport",
+      飛行時間: "10 hours",
+      機票價格: "$25432",
+      userFlight: {},
+    },
+  ]); // 用于存储行程数据
+  const [flightSearchResults, setflightSearchResults] = useState([]);
+  
+  // console.log("fakedata", fakedata);
+
+
+  const fetchData = async () => {
+    setLoading(true); // Set loading to true before fetching
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: headers,
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const result = await response.json();
+      console.log("Flight search result:", data);
+      setflightSearchResults(result.data);
+    } catch (error) {
+      console.error("Error fetching flight data:", error);
+    } finally {
+      setLoading(false); // Set loading to false after fetching
+    }
+  };
 
   const isMobile = useMediaQuery("(max-width: 768px)");
 
-  const nextStep = () =>
-    setActive((current) => (current < 3 ? current + 1 : current));
+  const nextStep = () => {
+    setActive((current) => (current < 5 ? current + 1 : current));
+    if (active === 0) {
+      fetchData();
+      setActive(1)
+    }
+    setData((prev) => [
+      ...prev,
+      { userFlight: data.flightSearchResults?.selectedId },
+    ]);
+  };
+
+  console.log("查詢結果: ", data.flightSearchResults);
+
   const prevStep = () =>
     setActive((current) => (current > 0 ? current - 1 : current));
 
@@ -61,8 +122,8 @@ export default function TravelPlanner() {
   };
 
   const calculateDays = () => {
-    const start = dayjs(form.start_date);
-    const end = dayjs(form.end_date);
+    const start = dayjs(form.departureDate);
+    const end = dayjs(form.returnDate);
     if (!start.isValid() || !end.isValid()) return null;
     return end.diff(start, "day") + 1;
   };
@@ -130,27 +191,28 @@ export default function TravelPlanner() {
         </ThemeIcon>
         <Text size="sm">
           <strong>旅行日期：</strong>
-          {dayjs(form.start_date).isValid()
-            ? dayjs(form.start_date).format("YYYY-MM-DD")
+          {dayjs(form.departureDate).isValid()
+            ? dayjs(form.departureDate).format("YYYY-MM-DD")
             : ""}
           {` ~ `}
-          {dayjs(form.end_date).isValid()
-            ? dayjs(form.end_date).format("YYYY-MM-DD")
+          {dayjs(form.returnDate).isValid()
+            ? dayjs(form.returnDate).format("YYYY-MM-DD")
             : ""}
         </Text>
       </Group>
 
-      {dayjs(form.start_date).isValid() && dayjs(form.end_date).isValid() && (
-        <Group spacing="xs" mb={6}>
-          <ThemeIcon variant="light" color="#2e9aff" radius="xl">
-            <IconClock stroke={2} />
-          </ThemeIcon>
-          <Text size="sm">
-            <strong>旅程天數：</strong>
-            {calculateDays()} 天
-          </Text>
-        </Group>
-      )}
+      {dayjs(form.departureDate).isValid() &&
+        dayjs(form.returnDate).isValid() && (
+          <Group spacing="xs" mb={6}>
+            <ThemeIcon variant="light" color="#2e9aff" radius="xl">
+              <IconClock stroke={2} />
+            </ThemeIcon>
+            <Text size="sm">
+              <strong>旅程天數：</strong>
+              {calculateDays()} 天
+            </Text>
+          </Group>
+        )}
 
       {/* <Group spacing="xs" mt="xs" justify="flex-start" align="center">
         <ThemeIcon variant="light" color="#70d573" radius="xl">
@@ -186,13 +248,30 @@ export default function TravelPlanner() {
     </Paper>
   );
 
+  /**API */
+  const url = `${BASEURL}search_flights`;
+
+  const headers = {
+    "Content-Type": "application/json",
+  };
+
+  const payload = {
+    departure: "SYD", // 可傳中文地名，但需後端處理轉為 IATA 代碼
+    destination: "BKK",
+    date: "2025-04-25",
+    adults: 1,
+    children: 0,
+    infants: 0,
+    nonStop: false, // ✅ Boolean，非字串
+    currencyCode: "USD",
+  };
+
   return (
     <Box
       maw={1200}
       mx="auto"
-      h="90vh"
-      hx="auto"
-      w={900}
+      mih="90vh"
+      miw={900}
       px="xl"
       py="xl"
       style={{
@@ -210,6 +289,7 @@ export default function TravelPlanner() {
           color={themeColor}
         >
           <Stepper.Step label="基本資訊" description="出發地與抵達" />
+          <Stepper.Step label="航空資訊" description="航班選擇" />
           <Stepper.Step label="旅遊偏好" description="美食與活動" />
           <Stepper.Step label="行程規劃" description="調整行程" />
           <Stepper.Step label="完成" description="確認與產出行程" />
@@ -245,6 +325,9 @@ export default function TravelPlanner() {
                       input: { borderRadius: "6px" },
                     }}
                   />
+                  <Text color={themeColor} size="sm">
+                    *目前僅支援部分國家:美國、西班牙、英國、德國和印度
+                  </Text>
                   <div>
                     <Text color="#2e9aff">
                       <strong>請選擇旅行日期:</strong>
@@ -252,9 +335,13 @@ export default function TravelPlanner() {
                     <DatePicker
                       type="range"
                       label="旅行日期"
-                      value={[form.start_date, form.end_date]}
+                      value={[form.departureDate, form.returnDate]}
                       onChange={([start, end]) =>
-                        setForm({ ...form, start_date: start, end_date: end })
+                        setForm({
+                          ...form,
+                          departureDate: start,
+                          returnDate: end,
+                        })
                       }
                       allowSingleDateInRange
                       mx="auto"
@@ -264,7 +351,9 @@ export default function TravelPlanner() {
                   <div>
                     <Text color="#2e9aff">
                       <strong>計畫旅程天數：</strong>
-                      {(form.start_date && form.end_date && calculateDays()) ??
+                      {(form.departureDate &&
+                        form.returnDate &&
+                        calculateDays()) ??
                         0}{" "}
                       天
                     </Text>
@@ -275,29 +364,21 @@ export default function TravelPlanner() {
 
             {active === 1 && (
               <Stack mt="xl">
-                {/* <div>
-                  <Text color="#59a803">
-                    <strong> 飲食偏好</strong>
-                  </Text>
-                  {[
-                    "在地小吃",
-                    "高級料理（米其林)",
-                    "異國料理（義式、日式、韓式等）",
-                    "路邊攤 / 夜市",
-                    "特色咖啡廳 / 甜點",
-                    "素食 / 特殊飲食（gluten-free、vegan）",
-                  ].map((item) => (
-                    <Checkbox
-                      key={item}
-                      label={item}
-                      checked={form.food_preferences.includes(item)}
-                      onChange={() =>
-                        togglePreference("food_preferences", item)
-                      }
-                      color={themeColor}
-                    />
-                  ))}
-                </div> */}
+                {loading ? (
+                  <Text>Loading flights...</Text>
+                ) : (
+                  <FlightCardSelector
+                    // flights={fakedata.data}
+                    flights={flightSearchResults}
+                    selectedId={selectedId}
+                    setSelectedId={setSelectedId}
+                  />
+                )}
+              </Stack>
+            )}
+
+            {active === 2 && (
+              <Stack mt="xl">
                 <div>
                   <Text color="#59a803" mb="sm">
                     <strong> 活動偏好</strong>
@@ -342,11 +423,12 @@ export default function TravelPlanner() {
               </Stack>
             )}
 
-            {active === 2 && <Stack mt="xl">塞地圖</Stack>}
+            {active === 3 && <Stack mt="xl">塞地圖</Stack>}
 
-            {active === 3 && (
+            {active === 4 && (
               <Box mt="xl">
-                <pre>{JSON.stringify(form, null, 2)}</pre>
+                {/* <pre>{JSON.stringify(form, null, 2)}</pre> */}
+                <Itinerary data={data} />
               </Box>
             )}
 
@@ -358,13 +440,13 @@ export default function TravelPlanner() {
               >
                 上一步
               </Button>
-              {active !== 3 && (
+              {active !== 4 && (
                 <Button
                   onClick={nextStep}
-                  disabled={active === 3}
+                  disabled={active === 4}
                   color={themeColor}
                 >
-                  {active === 2 ? "產生行程" : "下一步"}
+                  {active === 3 ? "產生行程" : "下一步"}
                 </Button>
               )}
             </Group>
