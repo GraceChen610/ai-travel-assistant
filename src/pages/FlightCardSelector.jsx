@@ -9,7 +9,7 @@ import {
   useMantineTheme,
   ActionIcon,
 } from "@mantine/core";
-import { IconCheck } from "@tabler/icons-react";
+import { FaCheck } from "react-icons/fa";
 import dayjs from "dayjs";
 
 export default function FlightCardSelector({ flights }) {
@@ -102,7 +102,7 @@ export default function FlightCardSelector({ flights }) {
                     zIndex: 1,
                   }}
                 >
-                  <IconCheck size={18} />
+                  <FaCheck />
                 </ActionIcon>
               )}
 

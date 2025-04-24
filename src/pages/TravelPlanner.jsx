@@ -14,27 +14,28 @@ import {
   ThemeIcon,
   Text,
 } from "@mantine/core";
+
 import {
-  IconMapPin,
-  IconPlaneDeparture,
-  IconCalendar,
-  IconListCheck,
-  IconMessageDots,
-  IconToolsKitchen3,
-  IconClock,
-} from "@tabler/icons-react";
+  MdOutlineMyLocation,
+  MdOutlineEventAvailable,
+  MdAccessTime,
+} from "react-icons/md";
+import { FaPlaneDeparture, FaTasks } from "react-icons/fa";
+import { IoChatboxEllipsesOutline } from "react-icons/io5";
+
 import { DatePicker } from "@mantine/dates";
 import { useMediaQuery } from "@mantine/hooks";
 import dayjs from "dayjs";
-import Itinerary from "./Itinerary";
-// import { fakedata } from "./fData";
+
+import { flightMockData } from "../mocks/flightMockData.js";
 // import { fakedata } from "./fakeData_10";
+
+import Itinerary from "./Itinerary";
 import FlightCardSelector from "./FlightCardSelector";
 
 const BASEURL = import.meta.env.VITE_BASEURL;
 
 const themeColor = "#ff672b"; // 主题颜色
-
 
 export default function TravelPlanner() {
   const [active, setActive] = useState(0);
@@ -43,16 +44,20 @@ export default function TravelPlanner() {
 
   const [form, setForm] = useState({
     departure_city: "",
-    originLocationCode: "", //旅客出發的城市/機場 IATA 代碼，例如波士頓的 BOS
-    destinationLocationCode: "", //旅客抵達的城市/機場 IATA 代碼，例如洛杉磯的 LAX
+    departure: "", //旅客出發的城市/機場 IATA 代碼，例如C，亦可可傳中文地名
+    destination: "", //旅客抵達的城市/機場 IATA 代碼，例如BKK
     destination_city: "",
     departureDate: null, //出發日期(格式:2017-12-25)
     returnDate: null, //回程日期
     adults: 1, //成人數量
-    food_preferences: [],
+    children: 0,
+    infants: 0, //嬰兒
+    nonStop: false, // ✅ Boolean，非字串
+    currencyCode: "USD",
     activity_preferences: [],
     notes: "",
   });
+
   const [data, setData] = useState([
     {
       出發日期: "10:30 AM, May 10",
@@ -65,9 +70,6 @@ export default function TravelPlanner() {
     },
   ]); // 用于存储行程数据
   const [flightSearchResults, setflightSearchResults] = useState([]);
-  
-  // console.log("fakedata", fakedata);
-
 
   const fetchData = async () => {
     setLoading(true); // Set loading to true before fetching
@@ -75,7 +77,7 @@ export default function TravelPlanner() {
       const response = await fetch(url, {
         method: "POST",
         headers: headers,
-        body: JSON.stringify(payload),
+        body: JSON.stringify(form),
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -85,6 +87,8 @@ export default function TravelPlanner() {
       setflightSearchResults(result.data);
     } catch (error) {
       console.error("Error fetching flight data:", error);
+      alert("無法獲取航班資料，將使用假資料渲染畫面。");
+      setflightSearchResults(flightMockData.data);
     } finally {
       setLoading(false); // Set loading to false after fetching
     }
@@ -96,7 +100,7 @@ export default function TravelPlanner() {
     setActive((current) => (current < 5 ? current + 1 : current));
     if (active === 0) {
       fetchData();
-      setActive(1)
+      setActive(1);
     }
     setData((prev) => [
       ...prev,
@@ -167,7 +171,7 @@ export default function TravelPlanner() {
 
       <Group spacing="xs" mb={6}>
         <ThemeIcon variant="light" color={themeColor} radius="xl">
-          <IconMapPin stroke={2} />
+          <FaPlaneDeparture size={22} />
         </ThemeIcon>
         <Text size="sm">
           <strong>出發機場：</strong>
@@ -177,7 +181,7 @@ export default function TravelPlanner() {
 
       <Group spacing="xs" mb={6}>
         <ThemeIcon variant="light" color={themeColor} radius="xl">
-          <IconPlaneDeparture stroke={2} />
+          <MdOutlineMyLocation size={20} />
         </ThemeIcon>
         <Text size="sm">
           <strong>抵達機場：</strong>
@@ -187,7 +191,7 @@ export default function TravelPlanner() {
 
       <Group spacing="xs" mb={6}>
         <ThemeIcon variant="light" color="#2e9aff" radius="xl">
-          <IconCalendar stroke={2} />
+          <MdOutlineEventAvailable size={22} />
         </ThemeIcon>
         <Text size="sm">
           <strong>旅行日期：</strong>
@@ -205,7 +209,8 @@ export default function TravelPlanner() {
         dayjs(form.returnDate).isValid() && (
           <Group spacing="xs" mb={6}>
             <ThemeIcon variant="light" color="#2e9aff" radius="xl">
-              <IconClock stroke={2} />
+              {/* <IconClock stroke={2} /> */}
+              <MdAccessTime size={22} />
             </ThemeIcon>
             <Text size="sm">
               <strong>旅程天數：</strong>
@@ -226,7 +231,7 @@ export default function TravelPlanner() {
 
       <Group spacing="xs" mt="xs">
         <ThemeIcon variant="light" color="#70d573" radius="xl">
-          <IconListCheck stroke={2} />
+          <FaTasks size={20} />
         </ThemeIcon>
         <Text size="sm">
           <strong>活動偏好：</strong>
@@ -238,7 +243,8 @@ export default function TravelPlanner() {
 
       <Group spacing="xs" mt="xs">
         <ThemeIcon variant="light" color="pink" radius="xl">
-          <IconMessageDots stroke={2} />
+          {/* <IconMessageDots stroke={2} /> */}
+          <IoChatboxEllipsesOutline size={20} />
         </ThemeIcon>
         <Text size="sm">
           <strong>備註：</strong>
@@ -255,16 +261,16 @@ export default function TravelPlanner() {
     "Content-Type": "application/json",
   };
 
-  const payload = {
-    departure: "SYD", // 可傳中文地名，但需後端處理轉為 IATA 代碼
-    destination: "BKK",
-    date: "2025-04-25",
-    adults: 1,
-    children: 0,
-    infants: 0,
-    nonStop: false, // ✅ Boolean，非字串
-    currencyCode: "USD",
-  };
+  // const payload = {
+  //   departure: "SYD", // 可傳中文地名，但需後端處理轉為 IATA 代碼
+  //   destination: "BKK",
+  //   date: "2025-04-25",
+  //   adults: 1,
+  //   children: 0,
+  //   infants: 0, //嬰兒
+  //   nonStop: false, // ✅ Boolean，非字串
+  //   currencyCode: "USD",
+  // };
 
   return (
     <Box
@@ -368,7 +374,6 @@ export default function TravelPlanner() {
                   <Text>Loading flights...</Text>
                 ) : (
                   <FlightCardSelector
-                    // flights={fakedata.data}
                     flights={flightSearchResults}
                     selectedId={selectedId}
                     setSelectedId={setSelectedId}

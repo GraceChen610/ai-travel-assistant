@@ -9,12 +9,8 @@ import {
   Timeline,
   Container,
 } from "@mantine/core";
-import {
-  IconPlane,
-  IconHome,
-  IconCalendarEvent,
-  IconMapPin,
-} from "@tabler/icons-react";
+
+import { BsCalendar3, BsAirplaneFill, BsFillHouseFill } from "react-icons/bs";
 
 export default function Itinerary({ data }) {
   return (
@@ -30,7 +26,7 @@ export default function Itinerary({ data }) {
       {/* Flight Section */}
       <Group align="flex-start" spacing="md" noWrap mt="xl">
         <ThemeIcon variant="light" color="orange" size="lg">
-          <IconPlane size={20} />
+          <BsAirplaneFill size={20} style={{ transform: "rotate(90deg)" }} />
         </ThemeIcon>
 
         <Box style={{ flex: 1 }}>
@@ -65,7 +61,7 @@ export default function Itinerary({ data }) {
       {/* Hotel Section */}
       <Group align="flex-start" spacing="md" noWrap mt="xl">
         <ThemeIcon variant="light" color="orange" size="lg">
-          <IconHome />
+          <BsFillHouseFill size={22} />
         </ThemeIcon>
         <Box>
           <Title order={4} color="orange.7">
@@ -83,7 +79,8 @@ export default function Itinerary({ data }) {
       {/* Itinerary */}
       <Group align="flex-start" spacing="md">
         <ThemeIcon variant="light" color="orange" size="lg">
-          <IconCalendarEvent />
+          {/* <IconCalendarEvent /> */}
+          <BsCalendar3 size={20} />
         </ThemeIcon>
         <Box>
           <Title order={4} color="orange.7">
