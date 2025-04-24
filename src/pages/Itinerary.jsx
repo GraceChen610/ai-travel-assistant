@@ -11,16 +11,111 @@ import {
 } from "@mantine/core";
 
 import { BsCalendar3, BsAirplaneFill, BsFillHouseFill } from "react-icons/bs";
+import {
+  formatDuration,
+  formatDateTime,
+  formatDate,
+  isEmptyObject,
+} from "../utils/function";
 
+const flightData = {
+  id: 1,
+  airline: "XIAMEN AIRLINES",
+  price: 247.4,
+  baggage: {
+    includedCheckedBags: 1,
+    additionalFee: 0,
+    currency: "USD",
+  },
+  duration: "PT16H25M",
+  segments: [
+    {
+      departure: {
+        airline: "Sydney Airport",
+        iataCode: "SYD",
+        at: "2025-05-02T11:25:00",
+        country: "Australia",
+        city: "Sydney",
+      },
+      arrival: {
+        airline: "Xiamen Airport",
+        iataCode: "XMN",
+        terminal: "3",
+        at: "2025-05-02T18:50:00",
+        country: "China",
+        city: "Xiamen",
+      },
+      carrierCode: "MF",
+    },
+    {
+      departure: {
+        airline: "Xiamen Airport",
+        iataCode: "XMN",
+        terminal: "3",
+        at: "2025-05-02T22:20:00",
+        country: "China",
+        city: "Xiamen",
+      },
+      arrival: {
+        airline: "Suvarnabhumi Airport",
+        iataCode: "BKK",
+        at: "2025-05-03T00:50:00",
+        country: "Thailand",
+        city: "Bangkok",
+      },
+      carrierCode: "MF",
+    },
+  ],
+};
+
+const form2 = {
+  departure_city: "SYD", //旅客出發的城市/機場 IATA 代碼，例如C，亦可可傳中文地名
+  destination_city: "BKK", //旅客抵達的城市/機場 IATA 代碼，例如BKK
+  departureDate: "2025-04-24T16:00:00.000Z", //出發日期(格式:2017-12-25)
+  returnDate: "2025-04-29T16:00:00.000Z", //回程日期
+  adults: 1, //成人數量
+  children: 0,
+  infants: 0, //嬰兒
+  nonStop: false, // ✅ Boolean，非字串
+  currencyCode: "USD",
+  activity_preferences: [],
+  notes: "",
+};
 export default function Itinerary({ data }) {
+  const userFlight = !isEmptyObject(data.userFlight)
+    ? data.userFlight
+    : flightData;
+
+  const form = data.form;
+  console.log("data", data);
+  console.log("userFlight", userFlight);
+
+  const departureDate = formatDate(form.departureDate);
+  const returnDate = formatDate(form.returnDate);
+  const totalDuration = formatDuration(userFlight?.duration);
+  const departureCity = `${userFlight.segments[0].departure.city}, ${userFlight.segments[0].departure.country}`;
+  const departureAirport = userFlight.segments[0].departure.airline;
+  const departureTerminal = userFlight.segments[0].departure.terminal
+    ? ` , Terminal ${userFlight.segments[0].departure.terminal}`
+    : "";
+  const departureTime = formatDateTime(userFlight.segments[0].departure.at);
+
+  const arrivalCity = `${userFlight.segments[1].arrival.city}, ${userFlight.segments[1].arrival.country}`;
+  const arrivalAirport = userFlight.segments[1].arrival.airline;
+  const arrivalTime = formatDateTime(userFlight.segments[1].arrival.at);
+  const arrivalTerminal = userFlight.segments[1].arrival.terminal
+    ? ` , Terminal ${userFlight.segments[1].arrival.terminal}`
+    : "";
+  const flightPrice = userFlight.price;
+
   return (
     <Container size="sm" pt="lg">
       {/* Title */}
       <Title order={2} color="orange.7" mb="xs">
-        Travel Itinerary
+        Travel Itinerary {isEmptyObject(data.userFlight) ? "(FakeData)" : ""}
       </Title>
       <Text size="lg" color="orange.6" mb="md">
-        May 10, 2024 – May 14, 2024
+        {departureDate} ~ {returnDate}
       </Text>
 
       {/* Flight Section */}
@@ -41,16 +136,24 @@ export default function Itinerary({ data }) {
 
           <Group spacing="xl" align="start" justify="space-between" mt="md">
             <Box>
-              <Text fw={500}>Tokyo, Japan</Text>
-              <Text size="sm">Departure: 10:30 AM, May 10</Text>
-              <Text size="sm">Narita International Airport, Terminal 1</Text>
-              <Text size="sm">Flight Duration: 10 hours</Text>
+              <Text fw={500}>{departureCity}</Text>
+              <Text size="sm">Departure: {departureTime}</Text>
+              <Text size="sm">
+                {departureAirport}
+                {departureTerminal}
+              </Text>
+              <Text size="sm">Flight Duration: {totalDuration}</Text>
             </Box>
             <Box>
-              <Text fw={500}>Los Angeles, USA</Text>
-              <Text size="sm">Arrival: 4:30 AM, May 10</Text>
-              <Text size="sm">Los Angeles International Airport</Text>
-              <Text size="sm">Ticket Fee: $0 tta</Text>
+              <Text fw={500}>{arrivalCity}</Text>
+              <Text size="sm">Arrival: {arrivalTime}</Text>
+              <Text size="sm">
+                {arrivalAirport}
+                {arrivalTerminal}
+              </Text>
+              <Text size="sm" color="orange.8">
+                Ticket Fee: {form.currencyCode} {flightPrice}
+              </Text>
             </Box>
           </Group>
         </Box>

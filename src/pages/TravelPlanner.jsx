@@ -43,10 +43,8 @@ export default function TravelPlanner() {
   const [loading, setLoading] = useState(false); // Add loading state
 
   const [form, setForm] = useState({
-    departure_city: "",
-    departure: "", //旅客出發的城市/機場 IATA 代碼，例如C，亦可可傳中文地名
-    destination: "", //旅客抵達的城市/機場 IATA 代碼，例如BKK
-    destination_city: "",
+    departure_city: "SYD", //旅客出發的城市/機場 IATA 代碼，例如C，亦可可傳中文地名
+    destination_city: "BKK", //旅客抵達的城市/機場 IATA 代碼，例如BKK
     departureDate: null, //出發日期(格式:2017-12-25)
     returnDate: null, //回程日期
     adults: 1, //成人數量
@@ -58,18 +56,19 @@ export default function TravelPlanner() {
     notes: "",
   });
 
-  const [data, setData] = useState([
-    {
-      出發日期: "10:30 AM, May 10",
-      出發機場: "Tokyo, Japan, Narita International Airport, Terminal 1",
-      抵達日期: "4:30 AM, May 10",
-      抵達機場: "USA, Los Angeles, Los Angeles International Airport",
-      飛行時間: "10 hours",
-      機票價格: "$25432",
-      userFlight: {},
+  const [data, setData] = useState({
+    form: form,
+    userFlight: {
+      // 出發日期: "10:30 AM, May 10",
+      // 出發機場: "Tokyo, Japan, Narita International Airport, Terminal 1",
+      // 抵達日期: "4:30 AM, May 10",
+      // 抵達機場: "USA, Los Angeles, Los Angeles International Airport",
+      // 飛行時間: "10 hours",
+      // 機票價格: "$25432",
     },
-  ]); // 用于存储行程数据
-  const [flightSearchResults, setflightSearchResults] = useState([]);
+    hotel: {},
+  }); // 用于存储行程数据
+  const [flightSearchResults, setFlightSearchResults] = useState([]);
 
   const fetchData = async () => {
     setLoading(true); // Set loading to true before fetching
@@ -83,12 +82,17 @@ export default function TravelPlanner() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const result = await response.json();
-      console.log("Flight search result:", data);
-      setflightSearchResults(result.data);
+      console.log("Flight search result:", result);
+      if (result.data.length > 1) {
+        setFlightSearchResults(result.data);
+      } else {
+        alert("資料異常，將使用假資料渲染畫面。");
+        setFlightSearchResults(flightMockData.data);
+      }
     } catch (error) {
       console.error("Error fetching flight data:", error);
       alert("無法獲取航班資料，將使用假資料渲染畫面。");
-      setflightSearchResults(flightMockData.data);
+      setFlightSearchResults(flightMockData.data);
     } finally {
       setLoading(false); // Set loading to false after fetching
     }
@@ -97,18 +101,33 @@ export default function TravelPlanner() {
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   const nextStep = () => {
+    const selectedFlightIndex = selectedId ? Number(selectedId) - 1 : null;
     setActive((current) => (current < 5 ? current + 1 : current));
     if (active === 0) {
       fetchData();
       setActive(1);
     }
-    setData((prev) => [
-      ...prev,
-      { userFlight: data.flightSearchResults?.selectedId },
-    ]);
+    if (active === 1) {
+      console.log(
+        "選擇",
+        selectedFlightIndex,
+        flightSearchResults[selectedFlightIndex]
+      );
+      setData((prev) => {
+        return {
+          ...prev,
+          userFlight: flightSearchResults[selectedFlightIndex],
+          form,
+        };
+      });
+    } else {
+      setData((prev) => {
+        return { ...prev, form };
+      });
+    }
   };
 
-  console.log("查詢結果: ", data.flightSearchResults);
+  console.log("data.userFlight", data.userFlight);
 
   const prevStep = () =>
     setActive((current) => (current > 0 ? current - 1 : current));
@@ -243,7 +262,6 @@ export default function TravelPlanner() {
 
       <Group spacing="xs" mt="xs">
         <ThemeIcon variant="light" color="pink" radius="xl">
-          {/* <IconMessageDots stroke={2} /> */}
           <IoChatboxEllipsesOutline size={20} />
         </ThemeIcon>
         <Text size="sm">
@@ -271,6 +289,8 @@ export default function TravelPlanner() {
   //   nonStop: false, // ✅ Boolean，非字串
   //   currencyCode: "USD",
   // };
+
+  //! 國家地點的日期需要校正
 
   return (
     <Box
@@ -349,6 +369,7 @@ export default function TravelPlanner() {
                           returnDate: end,
                         })
                       }
+                      minDate={new Date()} // 設置最小日期為今天，過去日期不可選
                       allowSingleDateInRange
                       mx="auto"
                       color={themeColor}

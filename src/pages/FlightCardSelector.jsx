@@ -11,22 +11,11 @@ import {
 } from "@mantine/core";
 import { FaCheck } from "react-icons/fa";
 import dayjs from "dayjs";
+import { formatTime, formatDate, formatDuration } from "../utils/function";
 
-export default function FlightCardSelector({ flights }) {
+export default function FlightCardSelector({ flights, selectedId, setSelectedId }) {
   const theme = useMantineTheme();
-  const [selectedId, setSelectedId] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
-
-  const formatTime = (dt) => dayjs(dt).format("HH:mm");
-  const formatDate = (dt) => dayjs(dt).format("YYYY-MM-DD");
-
-  const formatDuration = (pt) => {
-    const match = pt.match(/PT(\d+H)?(\d+M)?/);
-    const h = match[1] ? match[1].replace("H", "hr ") : "";
-    const m = match[2] ? match[2].replace("M", "min") : "";
-    return h + m;
-  };
-
   const getStopDuration = (arrival, nextDeparture) => {
     const diff = dayjs(nextDeparture).diff(dayjs(arrival), "minute");
     const hours = Math.floor(diff / 60);
@@ -118,7 +107,7 @@ export default function FlightCardSelector({ flights }) {
                   </Text>
                   <Text size="sm" color="dimmed">
                     {departureTime} → {arrivalTime}
-                    {crossesDay ? " (+1日)" : ""}
+                    {crossesDay ? " (+1 Day)" : ""}
                   </Text>
                   <Text size="xs" mt={4} color="gray">
                     {airlineName}
