@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   background-color: #fffaf2;
@@ -46,4 +47,3 @@ html, body {
 .read-the-docs {
   color: #888;
 }
-
