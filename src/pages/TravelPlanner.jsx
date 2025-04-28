@@ -47,7 +47,7 @@ export default function TravelPlanner() {
   const [loading, setLoading] = useState(false); // Add loading state
 
   const [form, setForm] = useState({
-    departure_city: "SYD", //旅客出發的城市/機場 IATA 代碼，例如C，亦可可傳中文地名
+    departure_city: "SYD", //旅客出發的城市/機場 IATA 代碼，例如SYD，亦可可傳中文地名
     destination_city: "BKK", //旅客抵達的城市/機場 IATA 代碼，例如BKK
     departureDate: null, //出發日期(格式:2017-12-25)
     returnDate: null, //回程日期
@@ -123,8 +123,6 @@ export default function TravelPlanner() {
       });
     }
   };
-
-  console.log("data.userFlight", data.userFlight);
 
   const prevStep = () =>
     setActive((current) => (current > 0 ? current - 1 : current));
@@ -266,19 +264,6 @@ export default function TravelPlanner() {
     "Content-Type": "application/json",
   };
 
-  // const payload = {
-  //   departure: "SYD", // 可傳中文地名，但需後端處理轉為 IATA 代碼
-  //   destination: "BKK",
-  //   date: "2025-04-25",
-  //   adults: 1,
-  //   children: 0,
-  //   infants: 0, //嬰兒
-  //   nonStop: false, // ✅ Boolean，非字串
-  //   currencyCode: "USD",
-  // };
-
-  //! 國家地點的日期需要校正
-
   function CustomGoogleLoginButton() {
     const { createEvents, isLoading } = useCalendar();
 
@@ -286,7 +271,6 @@ export default function TravelPlanner() {
       onSuccess: async (tokenResponse) => {
         const accessToken = tokenResponse.access_token;
         const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        console.log(timeZone); 
 
         await createEvents(accessToken, [
           {
@@ -312,7 +296,6 @@ export default function TravelPlanner() {
       },
       scope: "https://www.googleapis.com/auth/calendar.events",
     });
-
 
     return (
       <Button onClick={() => login()} color={themeColor} loading={isLoading}>
@@ -411,17 +394,47 @@ export default function TravelPlanner() {
                       type="range"
                       label="旅行日期"
                       value={[form.departureDate, form.returnDate]}
-                      onChange={([start, end]) =>
+                      onChange={([start, end]) => {
+                        // 使用當地午夜12點而不是0點，避免時區轉換問題
+                        const localStart = start
+                          ? new Date(
+                              Date.UTC(
+                                start.getFullYear(),
+                                start.getMonth(),
+                                start.getDate(),
+                                12, // 使用中午12點 (UTC)，確保不會因時區跨日
+                                0,
+                                0
+                              )
+                            )
+                          : null;
+
+                        const localEnd = end
+                          ? new Date(
+                              Date.UTC(
+                                end.getFullYear(),
+                                end.getMonth(),
+                                end.getDate(),
+                                12, // 使用中午12點 (UTC)，確保不會因時區跨日
+                                0,
+                                0
+                              )
+                            )
+                          : null;
+
                         setForm({
                           ...form,
-                          departureDate: start,
-                          returnDate: end,
-                        })
-                      }
-                      // 設置最小日期為今天，過去日期不可選
+                          departureDate: localStart,
+                          returnDate: localEnd,
+                        });
+                      }}
+                      minDate={new Date()} // 設置最小日期為今天，過去日期不可選
                       allowSingleDateInRange
                       mx="auto"
                       color={themeColor}
+                      timezone={
+                        Intl.DateTimeFormat().resolvedOptions().timeZone
+                      } // 使用當地時區
                     />
                   </div>
                   <div>

@@ -15,14 +15,15 @@ import {
 } from "@mantine/core";
 
 import { flightMockData } from "../mocks/flightMockData.js";
-import { getFinalArrival } from "../utils/function.js";
+import { combineFlightInfo } from "../utils/function.js";
 
-export const MapComponent = (data) => {
+export const MapComponent = ({data}) => {
   const [locations, setLocations] = useState([""]);
   const [directions, setDirections] = useState(null);
   const [totalDistance, setTotalDistance] = useState(0);
   const [totalDuration, setTotalDuration] = useState(0);
   const [routes, setRoutes] = useState([]);
+
   const handleAddLocation = () => {
     setLocations([...locations, ""]);
   };
@@ -104,16 +105,32 @@ export const MapComponent = (data) => {
 
           const userFlightData =
             data.userFlight?.segments ?? flightMockData.data[0].segments;
-          const flightArrival = getFinalArrival(userFlightData);
+
+          // 取得使用者的往返航班資料，包含抵達時間、起降機場等資訊
+          const flightInfo = combineFlightInfo(
+            userFlightData,
+            data.form.departure_city,
+            data.form.destination_city
+          );
+
+          console.log("flightInfo", flightInfo);
           // 在陣列最前面加入航班資訊
           coordinates.unshift({
             departure_flight: {
-              name: flightArrival.iataCode, // 抵達機場代碼
+              name: flightInfo.arrival.iataCode, // 抵達機場代碼
               latitude: null,
               longitude: null,
-              arrival_time: flightArrival.at, // 抵達時間
+              arrival_time: flightInfo.arrival.at, // 抵達時間
             },
           });
+
+          // ! 返程的航班資訊，如果沒有訂返程航班就不需要這個資訊
+          // departure_flight: {
+          //     name: flightInfo.arrival.iataCode, // 抵達機場代碼
+          //     latitude: null,
+          //     longitude: null,
+          //     arrival_time: flightInfo.arrival.at, // 抵達時間
+          //   },
           await recommendRoutes(coordinates);
         } else {
           console.error(`Error fetching directions: ${status}`);

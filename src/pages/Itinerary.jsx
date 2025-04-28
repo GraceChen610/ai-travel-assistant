@@ -93,19 +93,6 @@ export default function Itinerary({ data }) {
   const departureDate = formatDate(form.departureDate);
   const returnDate = formatDate(form.returnDate);
   const totalDuration = formatDuration(userFlight?.duration);
-  const departureCity = `${userFlight.segments[0].departure.city}, ${userFlight.segments[0].departure.country}`;
-  const departureAirport = userFlight.segments[0].departure.airline;
-  const departureTerminal = userFlight.segments[0].departure.terminal
-    ? ` , Terminal ${userFlight.segments[0].departure.terminal}`
-    : "";
-  const departureTime = formatDateTime(userFlight.segments[0].departure.at);
-
-  const arrivalCity = `${userFlight.segments[1].arrival.city}, ${userFlight.segments[1].arrival.country}`;
-  const arrivalAirport = userFlight.segments[1].arrival.airline;
-  const arrivalTime = formatDateTime(userFlight.segments[1].arrival.at);
-  const arrivalTerminal = userFlight.segments[1].arrival.terminal
-    ? ` , Terminal ${userFlight.segments[1].arrival.terminal}`
-    : "";
   const flightPrice = userFlight.price;
 
   return (
@@ -119,7 +106,7 @@ export default function Itinerary({ data }) {
       </Text>
 
       {/* Flight Section */}
-      <Group align="flex-start" spacing="md" noWrap mt="xl">
+      <Group align="flex-start" spacing="md" mt="xl">
         <ThemeIcon variant="light" color="orange" size="lg">
           <BsAirplaneFill size={20} style={{ transform: "rotate(90deg)" }} />
         </ThemeIcon>
@@ -131,31 +118,85 @@ export default function Itinerary({ data }) {
             color="orange.8"
             style={{ fontWeight: 700 }}
           >
-            Flight
+            Flight{" "}
+            {userFlight.segments.length > 1
+              ? `(${userFlight.segments.length} segments)`
+              : ""}
           </Title>
 
-          <Group spacing="xl" align="start" justify="space-between" mt="md">
-            <Box>
-              <Text fw={500}>{departureCity}</Text>
-              <Text size="sm">Departure: {departureTime}</Text>
-              <Text size="sm">
-                {departureAirport}
-                {departureTerminal}
-              </Text>
-              <Text size="sm">Flight Duration: {totalDuration}</Text>
-            </Box>
-            <Box>
-              <Text fw={500}>{arrivalCity}</Text>
-              <Text size="sm">Arrival: {arrivalTime}</Text>
-              <Text size="sm">
-                {arrivalAirport}
-                {arrivalTerminal}
-              </Text>
-              <Text size="sm" color="orange.8">
-                Ticket Fee: {form.currencyCode} {flightPrice}
-              </Text>
-            </Box>
-          </Group>
+          <Stack spacing="md">
+            {userFlight.segments.map((segment, index) => (
+              <Box key={index}>
+                {index > 0 && (
+                  <Divider
+                    label={`Transit at ${
+                      segment.departure.city || segment.departure.iataCode
+                    }`}
+                    labelPosition="center"
+                    my="sm"
+                    color="orange.3"
+                  />
+                )}
+
+                <Group
+                  spacing="xl"
+                  align="start"
+                  justify="space-between"
+                  mt="md"
+                >
+                  {/* 出發資訊 */}
+                  <Box>
+                    <Text fw={500}>
+                      {segment.departure.city
+                        ? `${segment.departure.city}, ${
+                            segment.departure.country || ""
+                          }`
+                        : `${segment.departure.iataCode}`}
+                    </Text>
+                    <Text size="sm">
+                      Departure: {formatDateTime(segment.departure.at)}
+                    </Text>
+                    <Text size="sm">
+                      {segment.departure.airline}
+                      {segment.departure.terminal
+                        ? `, Terminal ${segment.departure.terminal}`
+                        : ""}
+                    </Text>
+                  </Box>
+
+                  {/* 抵達資訊 */}
+                  <Box>
+                    <Text fw={500}>
+                      {segment.arrival.city
+                        ? `${segment.arrival.city}, ${
+                            segment.arrival.country || ""
+                          }`
+                        : `${segment.arrival.iataCode}`}
+                    </Text>
+                    <Text size="sm">
+                      Arrival: {formatDateTime(segment.arrival.at)}
+                    </Text>
+                    <Text size="sm">
+                      {segment.arrival.airline}
+                      {segment.arrival.terminal
+                        ? `, Terminal ${segment.arrival.terminal}`
+                        : ""}
+                    </Text>
+                  </Box>
+                  {index === userFlight.segments.length - 1 && (
+                    <>
+                      <Text size="sm" color="orange.8">
+                        Total Flight Duration: {totalDuration}
+                      </Text>
+                      <Text size="sm" color="orange.8" mx="auto">
+                        Ticket Fee: {form.currencyCode} {flightPrice}
+                      </Text>
+                    </>
+                  )}
+                </Group>
+              </Box>
+            ))}
+          </Stack>
         </Box>
       </Group>
 

@@ -16,6 +16,8 @@ import { formatTime, formatDate, formatDuration } from "../utils/function";
 export default function FlightCardSelector({ flights, selectedId, setSelectedId }) {
   const theme = useMantineTheme();
   const [expandedId, setExpandedId] = useState(null);
+
+  // ! 往返航班需要改停留時間
   const getStopDuration = (arrival, nextDeparture) => {
     const diff = dayjs(nextDeparture).diff(dayjs(arrival), "minute");
     const hours = Math.floor(diff / 60);
@@ -107,7 +109,7 @@ export default function FlightCardSelector({ flights, selectedId, setSelectedId 
                   </Text>
                   <Text size="sm" color="dimmed">
                     {departureTime} → {arrivalTime}
-                    {crossesDay ? " (+1 Day)" : ""}
+                    {crossesDay ? " (overnight)" : ""}
                   </Text>
                   <Text size="xs" mt={4} color="gray">
                     {airlineName}

@@ -16,9 +16,8 @@ const formatDuration = (pt) => {
  * @returns {string} 格式化後的日期時間 (如 10:30 AM, May 25, 2025)
  */
 const formatDateTime = (dateTimeString) => {
-    return dayjs(dateTimeString).format('h:mm A, MMM D, YYYY');
-  };
-
+  return dayjs(dateTimeString).format("h:mm A, MMM D, YYYY");
+};
 
 /**
  * 檢測物件是否為空
@@ -26,51 +25,70 @@ const formatDateTime = (dateTimeString) => {
  * @returns {boolean} - 如果為空則返回 true，否則返回 false
  */
 const isEmptyObject = (obj) => {
-    // 檢查 null 或 undefined
-    if (obj == null) {
-      return true;
-    }
-    
-    // 如果是物件類型，檢查是否有任何自己的可枚舉屬性
-    if (typeof obj === 'object' && !Array.isArray(obj)) {
-      return Object.keys(obj).length === 0;
-    }
-    
-    // 如果是陣列，檢查長度
-    if (Array.isArray(obj)) {
-      return obj.length === 0;
-    }
-    
-    // 其他類型返回 false
-    return false;
-  };
+  // 檢查 null 或 undefined
+  if (obj == null) {
+    return true;
+  }
 
+  // 如果是物件類型，檢查是否有任何自己的可枚舉屬性
+  if (typeof obj === "object" && !Array.isArray(obj)) {
+    return Object.keys(obj).length === 0;
+  }
 
-  /**
- * 取得最終抵達資訊
- * @param {Array} segments - 航段資訊陣列
- * @returns {Object|null} 最終抵達資訊物件
+  // 如果是陣列，檢查長度
+  if (Array.isArray(obj)) {
+    return obj.length === 0;
+  }
+
+  // 其他類型返回 false
+  return false;
+};
+
+/**
+ * 根據指定的IATA代碼篩選並組合出發和到達信息
+ * @param {Array} segments - 航班段落數組
+ * @param {string} departure - 出發IATA代碼
+ * @param {string} arrival - 到達IATA代碼
+ * @returns {Object|null} - 包含匹配的出發和到達信息的組合對象，如果未找到則返回null
  */
-const getFinalArrival = (segments) => {
-    // 檢查 segments 是否有效
-    if (!segments || !Array.isArray(segments) || segments.length === 0) {
-      return ;
+function combineFlightInfo(segments, departure, arrival) {
+  let departureInfo = null;
+  let arrivalInfo = null;
+  
+  // 遍歷所有段落以查找匹配的出發和到達信息
+  for (let i = 0; i < segments.length; i++) {
+    const segment = segments[i];
+    
+    if (segment.arrival.iataCode === departure) { // ! 返程，應該是這樣，要再確認下資料結構
+      departureInfo = segment.arrival;
     }
     
-    // 判斷航段數量
-    if (segments.length > 1) {
-      // 多段航班，回傳最後一個 segment 的 arrival
-      return segments[segments.length - 1].arrival;
-    } else {
-      // 單段航班，回傳第一個 segment 的 arrival
-      return segments[0].arrival;
+    if (segment.arrival.iataCode === arrival) { // 出發
+      arrivalInfo = segment.arrival;
     }
-  };
+    
+    // 如果兩者都找到，可以停止搜索
+    if (departureInfo && arrivalInfo) {
+      break;
+    }
+  }
+  
+  // 如果兩部分都找到了，返回組合對象
+  if (departureInfo && arrivalInfo) {
+    return {
+      departure: departureInfo,
+      arrival: arrivalInfo
+    };
+  }
+  
+  return null; // 如果出發或到達信息未找到，則返回null
+}
+
 export {
   formatDate,
   formatTime,
   formatDuration,
   formatDateTime,
   isEmptyObject,
-  getFinalArrival,
+  combineFlightInfo,
 };
