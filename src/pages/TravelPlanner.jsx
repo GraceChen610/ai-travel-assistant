@@ -33,8 +33,11 @@ import { flightMockData } from "../mocks/flightMockData.js";
 import Itinerary from "./Itinerary";
 import FlightCardSelector from "./FlightCardSelector";
 import { MapComponent } from "./MapComponent";
+import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
+import { useCalendar } from "../utils/useCalendar";
 
 const BASEURL = import.meta.env.VITE_BASEURL;
+const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 const themeColor = "#ff672b"; // 主题颜色
 
@@ -59,14 +62,7 @@ export default function TravelPlanner() {
 
   const [data, setData] = useState({
     form: form,
-    userFlight: {
-      // 出發日期: "10:30 AM, May 10",
-      // 出發機場: "Tokyo, Japan, Narita International Airport, Terminal 1",
-      // 抵達日期: "4:30 AM, May 10",
-      // 抵達機場: "USA, Los Angeles, Los Angeles International Airport",
-      // 飛行時間: "10 hours",
-      // 機票價格: "$25432",
-    },
+    userFlight: {},
     hotel: {},
   }); // 用于存储行程数据
   const [flightSearchResults, setFlightSearchResults] = useState([]);
@@ -239,16 +235,6 @@ export default function TravelPlanner() {
           </Group>
         )}
 
-      {/* <Group spacing="xs" mt="xs" justify="flex-start" align="center">
-        <ThemeIcon variant="light" color="#70d573" radius="xl">
-          <IconToolsKitchen3 stroke={2} />
-        </ThemeIcon>
-        <Text size="sm">
-          <strong>飲食偏好：</strong>
-        </Text>
-        <Text size="sm">{form.food_preferences.join("、") || "未選擇"}</Text>
-      </Group> */}
-
       <Group spacing="xs" mt="xs">
         <ThemeIcon variant="light" color="#70d573" radius="xl">
           <FaTasks size={20} />
@@ -292,6 +278,48 @@ export default function TravelPlanner() {
   // };
 
   //! 國家地點的日期需要校正
+
+  function CustomGoogleLoginButton() {
+    const { createEvents, isLoading } = useCalendar();
+
+    const login = useGoogleLogin({
+      onSuccess: async (tokenResponse) => {
+        const accessToken = tokenResponse.access_token;
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        console.log(timeZone); 
+
+        await createEvents(accessToken, [
+          {
+            title: "東京自由行 Day 1",
+            description: "抵達成田機場，入住飯店",
+            location: "東京都新宿區",
+            startDateTime: "2025-05-10T10:00:00",
+            endDateTime: "2025-05-10T18:00:00",
+            timeZone: timeZone,
+          },
+          {
+            title: "東京自由行 Day 2",
+            description: "淺草寺、晴空塔觀光",
+            location: "東京都墨田區",
+            startDateTime: "2025-05-11T09:00:00",
+            endDateTime: "2025-05-11T17:00:00",
+            timeZone: timeZone,
+          },
+        ]);
+      },
+      onError: () => {
+        console.error("Login Failed");
+      },
+      scope: "https://www.googleapis.com/auth/calendar.events",
+    });
+
+
+    return (
+      <Button onClick={() => login()} color={themeColor} loading={isLoading}>
+        加入 Google 行事曆
+      </Button>
+    );
+  }
 
   return (
     <Box
@@ -498,6 +526,11 @@ export default function TravelPlanner() {
                 >
                   {active === 3 ? "產生行程" : "下一步"}
                 </Button>
+              )}
+              {active === 4 && (
+                <GoogleOAuthProvider clientId={CLIENT_ID}>
+                  <CustomGoogleLoginButton />
+                </GoogleOAuthProvider>
               )}
             </Group>
           </Box>
