@@ -37,8 +37,7 @@ const BASEURL = import.meta.env.VITE_BASEURL;
 
 const themeColor = "#ff672b"; // 主题颜色
 
-
-import { GoogleMap, LoadScript, DirectionsService, DirectionsRenderer } from "@react-google-maps/api";
+import { GoogleMap, LoadScript, DirectionsService, DirectionsRenderer, useJsApiLoader } from "@react-google-maps/api";
 
 const MapComponent = () => {
   const [locations, setLocations] = useState([""]);
@@ -106,9 +105,9 @@ const MapComponent = () => {
               coordinates[index].name = location; // 將地點名稱添加到經緯度物件中
             }
           })
-          alert(
-            `經緯度資訊: ${JSON.stringify(Array.from(coordinates))}` // 將 Set 轉為 Array 顯示
-          )
+          // alert(
+          //   `經緯度資訊: ${JSON.stringify(Array.from(coordinates))}` // 將 Set 轉為 Array 顯示
+          // )
           await recommendRoutes(coordinates);
         } else {
           console.error(`Error fetching directions: ${status}`);
@@ -193,7 +192,9 @@ const MapComponent = () => {
           </span>
         </p>
       </div>
-      <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
+      {useJsApiLoader({
+        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+      }).isLoaded ? (
         <GoogleMap
           mapContainerStyle={{ width: "100%", height: "400px" }}
           center={{ lat: 25.033964, lng: 121.564468 }}
@@ -201,7 +202,9 @@ const MapComponent = () => {
         >
           {directions && <DirectionsRenderer directions={directions} />}
         </GoogleMap>
-      </LoadScript>
+      ) : (
+        <p>Loading map...</p>
+      )}
     </div>
   );
 };
@@ -484,11 +487,11 @@ export default function TravelPlanner() {
           orientation={isMobile ? "vertical" : "horizontal"}
           color={themeColor}
         >
-          <Stepper.Step label="基本資訊" description="出發地與抵達" />
-          <Stepper.Step label="航空資訊" description="航班選擇" />
-          <Stepper.Step label="旅遊偏好" description="美食與活動" />
-          <Stepper.Step label="行程規劃" description="調整行程" />
-          <Stepper.Step label="完成" description="確認與產出行程" />
+          <Stepper.Step style={{ outline: "none" }} label="基本資訊" description="出發地與抵達" />
+          <Stepper.Step style={{ outline: "none" }} label="航空資訊" description="航班選擇" />
+          <Stepper.Step style={{ outline: "none" }} label="旅遊偏好" description="美食與活動" />
+          <Stepper.Step style={{ outline: "none" }} label="行程規劃" description="調整行程" />
+          <Stepper.Step style={{ outline: "none" }} label="完成" description="確認與產出行程" />
         </Stepper>
         <Group align="flex-start" justify="space-between" spacing="xl" mt="xl">
           <Box style={{ flex: 1 }}>
