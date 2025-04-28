@@ -32,6 +32,7 @@ import { flightMockData } from "../mocks/flightMockData.js";
 
 import Itinerary from "./Itinerary";
 import FlightCardSelector from "./FlightCardSelector";
+import { MapComponent } from "./MapComponent";
 
 const BASEURL = import.meta.env.VITE_BASEURL;
 
@@ -314,11 +315,31 @@ export default function TravelPlanner() {
           orientation={isMobile ? "vertical" : "horizontal"}
           color={themeColor}
         >
-          <Stepper.Step label="基本資訊" description="出發地與抵達" />
-          <Stepper.Step label="航空資訊" description="航班選擇" />
-          <Stepper.Step label="旅遊偏好" description="美食與活動" />
-          <Stepper.Step label="行程規劃" description="調整行程" />
-          <Stepper.Step label="完成" description="確認與產出行程" />
+          <Stepper.Step
+            style={{ outline: "none" }}
+            label="基本資訊"
+            description="出發地與抵達"
+          />
+          <Stepper.Step
+            style={{ outline: "none" }}
+            label="航空資訊"
+            description="航班選擇"
+          />
+          <Stepper.Step
+            style={{ outline: "none" }}
+            label="旅遊偏好"
+            description="美食與活動"
+          />
+          <Stepper.Step
+            style={{ outline: "none" }}
+            label="行程規劃"
+            description="調整行程"
+          />
+          <Stepper.Step
+            style={{ outline: "none" }}
+            label="完成"
+            description="確認與產出行程"
+          />
         </Stepper>
         <Group align="flex-start" justify="space-between" spacing="xl" mt="xl">
           <Box style={{ flex: 1 }}>
@@ -369,7 +390,7 @@ export default function TravelPlanner() {
                           returnDate: end,
                         })
                       }
-                      minDate={new Date()} // 設置最小日期為今天，過去日期不可選
+                      // 設置最小日期為今天，過去日期不可選
                       allowSingleDateInRange
                       mx="auto"
                       color={themeColor}
@@ -449,11 +470,14 @@ export default function TravelPlanner() {
               </Stack>
             )}
 
-            {active === 3 && <Stack mt="xl">塞地圖</Stack>}
+            {active === 3 && (
+              <Stack mt="xl">
+                <MapComponent data={data} />
+              </Stack>
+            )}
 
             {active === 4 && (
               <Box mt="xl">
-                {/* <pre>{JSON.stringify(form, null, 2)}</pre> */}
                 <Itinerary data={data} />
               </Box>
             )}
@@ -477,7 +501,7 @@ export default function TravelPlanner() {
               )}
             </Group>
           </Box>
-          {!isMobile && (
+          {!isMobile && active !== 3 && (
             <Box mt="xl">
               <SummaryPanel />
             </Box>
