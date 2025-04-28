@@ -32,7 +32,7 @@ import { flightMockData } from "../mocks/flightMockData.js";
 
 import Itinerary from "./Itinerary";
 import FlightCardSelector from "./FlightCardSelector";
-import { MapComponent } from "./MapComponent.jsx";
+import { MapComponent } from "./MapComponent";
 
 const BASEURL = import.meta.env.VITE_BASEURL;
 
@@ -472,7 +472,7 @@ export default function TravelPlanner() {
 
             {active === 3 && (
               <Stack mt="xl">
-                <MapComponent />
+                <MapComponent data={data} />
               </Stack>
             )}
 

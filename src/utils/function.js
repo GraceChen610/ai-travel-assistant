@@ -45,10 +45,32 @@ const isEmptyObject = (obj) => {
     return false;
   };
 
+
+  /**
+ * 取得最終抵達資訊
+ * @param {Array} segments - 航段資訊陣列
+ * @returns {Object|null} 最終抵達資訊物件
+ */
+const getFinalArrival = (segments) => {
+    // 檢查 segments 是否有效
+    if (!segments || !Array.isArray(segments) || segments.length === 0) {
+      return ;
+    }
+    
+    // 判斷航段數量
+    if (segments.length > 1) {
+      // 多段航班，回傳最後一個 segment 的 arrival
+      return segments[segments.length - 1].arrival;
+    } else {
+      // 單段航班，回傳第一個 segment 的 arrival
+      return segments[0].arrival;
+    }
+  };
 export {
   formatDate,
   formatTime,
   formatDuration,
   formatDateTime,
   isEmptyObject,
+  getFinalArrival,
 };
