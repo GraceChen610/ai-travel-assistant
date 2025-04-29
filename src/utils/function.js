@@ -84,6 +84,31 @@ function combineFlightInfo(segments, departure, arrival) {
   return null; // 如果出發或到達信息未找到，則返回null
 }
 
+// 計算時間差 (單位：分鐘)
+function calculateStayTime(startTime, endTime) {
+  const [startHour, startMinute] = startTime.split(":").map(Number);
+  const [endHour, endMinute] = endTime.split(":").map(Number);
+
+  const startTotalMinutes = startHour * 60 + startMinute;
+  const endTotalMinutes = endHour * 60 + endMinute;
+
+  return endTotalMinutes - startTotalMinutes;
+}
+
+// 幫每個行程加上 stay_time
+function addStayTimeToItineraries(schedule) {
+  return schedule.map(day => {
+    const updatedItinerary = day.itinerary.map(spot => ({
+      ...spot,
+      stay_time: calculateStayTime(spot.start_time, spot.end_time)
+    }));
+    return {
+      ...day,
+      itinerary: updatedItinerary
+    };
+  });
+}
+
 export {
   formatDate,
   formatTime,
@@ -91,4 +116,5 @@ export {
   formatDateTime,
   isEmptyObject,
   combineFlightInfo,
+  addStayTimeToItineraries,
 };

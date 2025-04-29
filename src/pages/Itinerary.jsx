@@ -18,6 +18,10 @@ import {
   isEmptyObject,
 } from "../utils/function";
 
+import { itineraryMockData } from "../mocks/itineraryMockData";
+import { addStayTimeToItineraries } from "../utils/function";
+import dayjs from "dayjs";
+
 const flightData = {
   id: 1,
   airline: "XIAMEN AIRLINES",
@@ -68,19 +72,52 @@ const flightData = {
   ],
 };
 
-const form2 = {
-  departure_city: "SYD", //旅客出發的城市/機場 IATA 代碼，例如C，亦可可傳中文地名
-  destination_city: "BKK", //旅客抵達的城市/機場 IATA 代碼，例如BKK
-  departureDate: "2025-04-24T16:00:00.000Z", //出發日期(格式:2017-12-25)
-  returnDate: "2025-04-29T16:00:00.000Z", //回程日期
-  adults: 1, //成人數量
-  children: 0,
-  infants: 0, //嬰兒
-  nonStop: false, // ✅ Boolean，非字串
-  currencyCode: "USD",
-  activity_preferences: [],
-  notes: "",
-};
+function ItineraryTimeline({ userItinerary }) {
+  return (
+    <Box>
+      <Title order={4} color="orange.7" mb="md">
+        Itinerary
+      </Title>
+
+      {userItinerary.map((day, index) => {
+        const formattedDate = dayjs()
+          .add(day.day - 1, "day")
+          .format("MMMM D");
+
+        return (
+          <Box key={day.day} mb="lg">
+            {/* 日期標題 */}
+            <Text size="sm" color="gray.7" mb="xs">
+              {formattedDate}
+            </Text>
+
+            <Timeline active={-1} bulletSize={18} lineWidth={2} color="orange">
+              {day.itinerary.map((item) => {
+                const stayTime = item.stay_time || 0; // 預設為 0
+                return (
+                  <Timeline.Item key={item.order} title={item.name}>
+                    <Text size="sm">
+                      {item.start_time} – Stay:{" "}
+                      {stayTime >= 60
+                        ? `${Math.floor(stayTime / 60)} hr ${stayTime % 60} min`
+                        : `${stayTime} min`}
+                    </Text>
+                  </Timeline.Item>
+                );
+              })}
+            </Timeline>
+
+            {/* 天與天之間的分隔線（非最後一天才顯示） */}
+            {index !== userItinerary.length - 1 && (
+              <Divider my="lg" variant="dashed" />
+            )}
+          </Box>
+        );
+      })}
+    </Box>
+  );
+}
+
 export default function Itinerary({ data }) {
   const userFlight = !isEmptyObject(data.userFlight)
     ? data.userFlight
@@ -90,19 +127,24 @@ export default function Itinerary({ data }) {
   console.log("data", data);
   console.log("userFlight", userFlight);
 
-  const departureDate = formatDate(form.departureDate);
+  const userItinerary = addStayTimeToItineraries(itineraryMockData);
+  console.log("userItinerary", userItinerary);
+
+  const departureDate = formatDate(form?.departureDate);
   const returnDate = formatDate(form.returnDate);
   const totalDuration = formatDuration(userFlight?.duration);
   const flightPrice = userFlight.price;
+  const fristDayHotel = userItinerary[0].itinerary.at(-1);
 
   return (
-    <Container size="sm" pt="lg">
+    <Container size="sm" pt="lg" id="itinerary">
       {/* Title */}
       <Title order={2} color="orange.7" mb="xs">
         Travel Itinerary {isEmptyObject(data.userFlight) ? "(FakeData)" : ""}
       </Title>
       <Text size="lg" color="orange.6" mb="md">
-        {departureDate} ~ {returnDate}
+        {departureDate !== "Invalid Date" ? departureDate : ""} ~{" "}
+        {returnDate !== "Invalid Date" ? returnDate : ""}
       </Text>
 
       {/* Flight Section */}
@@ -188,7 +230,7 @@ export default function Itinerary({ data }) {
                       <Text size="sm" color="orange.8">
                         Total Flight Duration: {totalDuration}
                       </Text>
-                      <Text size="sm" color="orange.8" mx="auto">
+                      <Text size="sm" color="orange.8" mr="30">
                         Ticket Fee: {form.currencyCode} {flightPrice}
                       </Text>
                     </>
@@ -203,56 +245,95 @@ export default function Itinerary({ data }) {
       <Divider my="lg" />
 
       {/* Hotel Section */}
-      <Group align="flex-start" spacing="md" noWrap mt="xl">
+      <Group align="flex-start" spacing="md" mt="xl">
         <ThemeIcon variant="light" color="orange" size="lg">
           <BsFillHouseFill size={22} />
         </ThemeIcon>
-        <Box>
+        <Box mx="auto">
           <Title order={4} color="orange.7">
             Hotel
           </Title>
-          <Text size="sm">
-            Central Hotel, 123 Main St, Los Angeles, CA 90012
-          </Text>
-          <Text size="sm">Contact: +1 213-555-1234</Text>
+          <Text size="sm">{fristDayHotel.name}</Text>
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+              fristDayHotel.address
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Text size="sm" className="text-blue-600">
+              {fristDayHotel.address}
+            </Text>
+          </a>
+
+          {/* <Text size="sm">Contact: +1 213-555-1234</Text> */}
         </Box>
       </Group>
 
       <Divider my="lg" />
 
       {/* Itinerary */}
-      <Group align="flex-start" spacing="md">
+      <Group justify="flex-start" spacing="md">
         <ThemeIcon variant="light" color="orange" size="lg">
-          {/* <IconCalendarEvent /> */}
           <BsCalendar3 size={20} />
         </ThemeIcon>
-        <Box>
-          <Title order={4} color="orange.7">
-            Itinerary
-          </Title>
-          <Text size="sm" color="gray.7" mb="xs">
-            May 10
-          </Text>
-          <Timeline active={-1} bulletSize={18} lineWidth={2} color="orange">
-            <Timeline.Item title="Local Eats">
-              <Text size="sm">8:00 AM</Text>
-            </Timeline.Item>
-            <Timeline.Item title="Griffith Observatory">
-              <Text size="sm">9:30 AM – Stay: 30 min</Text>
-            </Timeline.Item>
-            <Timeline.Item title="Hollywood Walk of Fame">
-              <Text size="sm">11:30 AM – Check-in: 11 hours</Text>
-            </Timeline.Item>
-            <Timeline.Item title="Lunch at Mcy Bistro">
-              <Text size="sm">—</Text>
-            </Timeline.Item>
-            <Timeline.Item title="Santa Monica Pier">
-              <Text size="sm">11:30 PM – Stay: 2 hours</Text>
-            </Timeline.Item>
-            <Timeline.Item title="Return to Central Hotel">
-              <Text size="sm">4:00 PM – 4 hours 30 min</Text>
-            </Timeline.Item>
-          </Timeline>
+        <Title order={4} color="orange.7" mb="md" mx="auto">
+          Itinerary
+        </Title>
+        <Box w="100%">
+          {userItinerary.map((day, index) => {
+            const formattedDate = dayjs()
+              .add(day.day - 1, "day")
+              .format("MMMM D");
+
+            return (
+              <Box key={day.day} mb="lg" ml="40">
+                {/* 日期標題 */}
+                <Text size="sm" color="#ff672b" mb="xs">
+                  {/* {formattedDate} */}
+                  Day {day.day}
+                </Text>
+
+                <Timeline
+                  active={-1}
+                  bulletSize={18}
+                  lineWidth={2}
+                  color="#ff672b"
+                >
+                  {day.itinerary.map((item) => {
+                    const stayTime = item.stay_time || 0; // 預設為 0
+                    return (
+                      <Timeline.Item key={item.order} title={item.name}>
+                        <Text size="sm">
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                              item.address
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {item.address}
+                          </a>
+                          <br />
+                          {item.start_time} – Stay:{" "}
+                          {stayTime >= 60
+                            ? `${Math.floor(stayTime / 60)} hr ${
+                                stayTime % 60
+                              } min`
+                            : `${stayTime} min`}
+                        </Text>
+                      </Timeline.Item>
+                    );
+                  })}
+                </Timeline>
+
+                {/* 天與天之間的分隔線（非最後一天才顯示） */}
+                {index !== userItinerary.length - 1 && (
+                  <Divider my="lg" variant="dashed" />
+                )}
+              </Box>
+            );
+          })}
         </Box>
       </Group>
     </Container>

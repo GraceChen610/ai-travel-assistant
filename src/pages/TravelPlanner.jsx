@@ -26,6 +26,7 @@ import { IoChatboxEllipsesOutline } from "react-icons/io5";
 import { DatePicker } from "@mantine/dates";
 import { useMediaQuery } from "@mantine/hooks";
 import dayjs from "dayjs";
+import html2canvas from "html2canvas";
 
 import { flightMockData } from "../mocks/flightMockData.js";
 // import { fakedata } from "./fakeData_10";
@@ -58,6 +59,7 @@ export default function TravelPlanner() {
     currencyCode: "USD",
     activity_preferences: [],
     notes: "",
+    email: "",
   });
 
   const [data, setData] = useState({
@@ -256,6 +258,58 @@ export default function TravelPlanner() {
       </Group>
     </Paper>
   );
+
+  const EmailPanel = () => (
+    <Paper p="md" radius="xl" shadow="md" withBorder bg="#fffffc" w={310}>
+      <Title order={4} mb="sm" color="pink.6" style={{ color: themeColor }}>
+        📋 Send the itinerary to the email address
+      </Title>
+      <Divider mb="sm" />
+
+      <Group spacing="xs" mb={6} justify="center">
+        <TextInput
+          label="Please enter your email."
+          size="xs"
+          value={form.email}
+          onChange={(e) => setForm({ ...form, email: e.target.value })}
+          w={260}
+          styles={{
+            input: { borderRadius: "6px" },
+          }}
+        />
+
+        <Button
+          onClick={captureAndDownload}
+          color={themeColor}
+          variant="outline"
+        >
+          Send & Download
+        </Button>
+      </Group>
+    </Paper>
+  );
+
+  const captureAndDownload = async () => {
+    const element = document.getElementById("itinerary"); // 行程表的 DOM 元素
+    const canvas = await html2canvas(element);
+    const dataUrl = canvas.toDataURL("image/png");
+
+    // 可選：下載
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = "itinerary.png";
+    link.click();
+
+    const formData = new FormData();
+    formData.append("image", dataUrl); // 傳 base64 字串
+    formData.append("email", form.email);
+
+    // 或：上傳到後端寄信
+    await fetch(`${BASEURL}send_mail`, {
+      method: "POST",
+      body: formData,
+    });
+  };
 
   /**API */
   const url = `${BASEURL}search_flights`;
@@ -547,9 +601,14 @@ export default function TravelPlanner() {
               )}
             </Group>
           </Box>
-          {!isMobile && active !== 3 && (
+          {!isMobile && active !== 3 && active !== 4 && (
             <Box mt="xl">
               <SummaryPanel />
+            </Box>
+          )}
+          {active === 4 && (
+            <Box mt="xl">
+              <EmailPanel />
             </Box>
           )}
         </Group>
