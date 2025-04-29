@@ -61,8 +61,10 @@ function combineFlightInfo(segments, departure, arrival) {
     
     if (segment.arrival.iataCode === departure) { // ! 返程，應該是這樣，要再確認下資料結構
       departureInfo = segment.arrival;
+    } else {
+      departureInfo = 'noBackFlight';
+      ;
     }
-    
     if (segment.arrival.iataCode === arrival) { // 出發
       arrivalInfo = segment.arrival;
     }

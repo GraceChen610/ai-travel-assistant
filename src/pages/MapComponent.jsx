@@ -1,156 +1,161 @@
-import { useState } from "react";
-
-import {
-  GoogleMap,
-  LoadScript,
-  DirectionsService,
-  DirectionsRenderer,
-  useJsApiLoader,
-} from "@react-google-maps/api";
-
-
-import {
-  Stepper,
-  Button,
-} from "@mantine/core";
-
-import { flightMockData } from "../mocks/flightMockData.js";
+import { useState, useRef } from "react";
+import { GoogleMap, useJsApiLoader } from "@react-google-maps/api";
 import { combineFlightInfo } from "../utils/function.js";
+import { flightMockData } from "../mocks/flightMockData.js";
 
-export const MapComponent = ({data}) => {
-  const [locations, setLocations] = useState([""]);
-  const [directions, setDirections] = useState(null);
-  const [totalDistance, setTotalDistance] = useState(0);
-  const [totalDuration, setTotalDuration] = useState(0);
-  const [routes, setRoutes] = useState([]);
 
-  const handleAddLocation = () => {
-    setLocations([...locations, ""]);
-  };
 
-  const handleLocationChange = (index, value) => {
-    const updatedLocations = [...locations];
-    updatedLocations[index] = value;
-    setLocations(updatedLocations);
-  };
+export const MapComponent = ({ data, calculateDays }) => {
+  const mapRef = useRef(null);
+  const [cityInputs, setCityInputs] = useState(
+    Array.from({ length: calculateDays }, () => "")
+  ); // 根據 calculateDays 初始化城市輸入框
+  const [apiData, setApiData] = useState([]); // 新增 state 來儲存 API 回傳的資料
+  const [flightInfo, setFlightInfo] = useState(null);
 
-  const handleCalculateRoute = () => {
-    if (locations.length < 2) {
-      alert("請輸入至少兩個地點。");
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY, // 替換為您的 Google Maps API 金鑰
+    libraries: ["places"],
+  });
+
+  const handleSearch = () => {
+    if(cityInputs.some(city => city == "")) {
+      alert("請填寫所有城市名稱！");
       return;
     }
+    if (isLoaded && mapRef.current) {
+      const geocoder = new window.google.maps.Geocoder();
+      const groupedData = [];
 
-    if (locations.some((loc) => !loc.trim())) {
-      alert("所有地點欄位都必須填寫。");
-      return;
+      cityInputs.forEach((city, dayIndex) => {
+        geocoder.geocode({ address: city }, async (results, status) => {
+          if (status === window.google.maps.GeocoderStatus.OK) {
+            const location = results[0].geometry.location;
+            const map = new window.google.maps.Map(mapRef.current, {
+              center: location,
+              zoom: 13,
+            });
+
+            const service = new window.google.maps.places.PlacesService(map);
+            const keywords = [...data.form.activity_preferences, "餐廳", "旅館"];
+            const itineraryData = [];
+
+            keywords.forEach((keyword) => {
+              const request = {
+                location,
+                radius: 5000,
+                keyword: `${city} ${keyword}`,
+              };
+
+              service.nearbySearch(request, (results, status) => {
+                if (status === window.google.maps.places.PlacesServiceStatus.OK) {
+                  results.forEach((place) => {
+                    console.log(place)
+                    console.log(place.name)
+                    const isDuplicate = itineraryData.some(
+                      (item) => item.name === place.name
+                    );
+
+                    if (!isDuplicate) {
+                      itineraryData.push({
+                        name: place.name,
+                        latitude: place.geometry.location.lat(),
+                        longitude: place.geometry.location.lng(),
+                      });
+                    }
+                  });
+
+                  if (!groupedData.some((group) => group.day === dayIndex + 1)) {
+                    groupedData.push({
+                      day: dayIndex + 1,
+                      itinerary: itineraryData,
+                    });
+                  }
+
+                  if (groupedData.length === cityInputs.length) {
+                    setApiData(groupedData);
+                    console.log(groupedData);
+                  }
+                }
+              });
+            });
+            // 打後端 查出AI推薦路線
+            await recommendRoutes()
+          }
+        });
+      });
     }
+  };
 
-    const directionsService = new window.google.maps.DirectionsService();
-    directionsService.route(
-      {
-        origin: locations[0],
-        destination: locations[locations.length - 1],
-        waypoints: locations
-          .slice(1, -1)
-          .map((loc) => ({ location: loc, stopover: true })),
-        travelMode: window.google.maps.TravelMode.DRIVING,
+  if (!isLoaded) {
+    return <div>Loading Google Maps...</div>;
+  }
+
+
+  const setFlightData = ()=>{
+    const userFlightData =
+    data.userFlight?.segments ?? flightMockData.data[0].segments;
+    
+    // 取得使用者的往返航班資料，包含抵達時間、起降機場等資訊
+    setFlightInfo(combineFlightInfo(
+      userFlightData,
+      data.form.departure_city,
+      data.form.destination_city
+    ));
+  }
+
+
+  const recommendRoutes = async () => {
+    // 處理 API 資料
+    await setFlightData();
+    
+    let arrivalFlight = {
+      departure_flight: {
+        name: flightInfo.arrival.iataCode, // 抵達機場代碼
+        latitude: null,
+        longitude: null,
+        arrival_time: flightInfo.arrival.at, // 抵達時間
       },
-      async (result, status) => {
-        if (status === window.google.maps.DirectionsStatus.OK) {
-          setDirections(result);
+    };
 
-          // 提取距離、時間和經緯度
-          const legs = result.routes[0].legs;
-          //初始化距離和時間
-          setTotalDistance(0);
-          setTotalDuration(0);
-          let coordinates = []; // 使用 Set 來避免重複
+    let departureFlight ={}
+    if(flightInfo.departure != 'noBackFlight'){
+      departureFlight = {
+        departure_flight: {
+          name: flightInfo.departure.iataCode, // 離開機場代碼
+          latitude: null,
+          longitude: null,
+          arrival_time: flightInfo.departure.at, // 抵達時間
+        },
+      };
+    }
 
-          legs.forEach((leg) => {
-            setTotalDistance(
-              (prevDistance) => prevDistance + leg.distance.value
-            ); // 距離（公尺）
-            setTotalDuration(
-              (prevDuration) => prevDuration + leg.duration.value
-            ); // 時間（秒）
+    let setApiData = [];
 
-            // 提取起點和終點的經緯度，並以物件形式存入陣列
-            coordinates.push({
-              latitude: leg.start_location.lat(),
-              longitude: leg.start_location.lng(),
-            });
-            coordinates.push({
-              latitude: leg.end_location.lat(),
-              longitude: leg.end_location.lng(),
-            });
-          });
-
-          // 去除重複
-          coordinates = coordinates.filter(
-            (item, index, self) =>
-              index ===
-              self.findIndex(
-                (t) =>
-                  t.latitude === item.latitude && t.longitude === item.longitude
-              )
-          );
-          locations.forEach((location, index) => {
-            if (location) {
-              coordinates[index].name = location; // 將地點名稱添加到經緯度物件中
-            }
-          });
-          // alert(
-          //   `經緯度資訊: ${JSON.stringify(Array.from(coordinates))}` // 將 Set 轉為 Array 顯示
-          // )
-
-          const userFlightData =
-            data.userFlight?.segments ?? flightMockData.data[0].segments;
-
-          // 取得使用者的往返航班資料，包含抵達時間、起降機場等資訊
-          const flightInfo = combineFlightInfo(
-            userFlightData,
-            data.form.departure_city,
-            data.form.destination_city
-          );
-
-          console.log("flightInfo", flightInfo);
-          // 在陣列最前面加入航班資訊
-          coordinates.unshift({
-            departure_flight: {
-              name: flightInfo.arrival.iataCode, // 抵達機場代碼
-              latitude: null,
-              longitude: null,
-              arrival_time: flightInfo.arrival.at, // 抵達時間
-            },
-          });
-
-          // ! 返程的航班資訊，如果沒有訂返程航班就不需要這個資訊
-          // departure_flight: {
-          //     name: flightInfo.arrival.iataCode, // 抵達機場代碼
-          //     latitude: null,
-          //     longitude: null,
-          //     arrival_time: flightInfo.arrival.at, // 抵達時間
-          //   },
-          await recommendRoutes(coordinates);
-        } else {
-          console.error(`Error fetching directions: ${status}`);
-          alert(`無法計算路線，請檢查地點是否正確。錯誤代碼: ${status}`);
-        }
+    apiData.forEach((data) => {
+      //day = 1 時，加入航班資訊
+      if(data.day == 1){
+        setApiData.push({
+          day: data.day,
+          departure_flight : arrivalFlight,//抵達航班資訊
+          itinerary: data.itinerary,
+        });
       }
-    );
-  };
+      //day = 最後時，加入航班資訊
+      else if(data.dat == cityInputs && Object.keys(departureFlight).length === 0){
+        setApiData.push({
+          day: data.day,
+          departure_flight : departureFlight, //離開航班資訊
+          itinerary: data.itinerary,
+        });
+      }else {
+        setApiData.push({
+          day: data.day,
+          itinerary: data.itinerary,
+        });
+      }
+    })
 
-  const handleRemoveLocation = () => {
-    if (locations.length > 1) {
-      setLocations(locations.slice(0, -1));
-    } else {
-      alert("至少需要保留一個地點。");
-    }
-  };
-  const recommendRoutes = async (route) => {
-    if (route == null) {
-      return;
-    }
     try {
       const response = await fetch(
         "https://tes-430078023071.asia-east1.run.app/plan_route",
@@ -159,7 +164,7 @@ export const MapComponent = ({data}) => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ route }),
+          body: JSON.stringify({ setApiData }),
         }
       );
 
@@ -168,84 +173,38 @@ export const MapComponent = ({data}) => {
       }
 
       const result = await response.json();
-      setRoutes([]); // 清空之前的路線
-      result.data
-        .sort((a, b) => a.order - b.order)
-        .forEach((item) => {
-          setRoutes((prevRoutes) => [...prevRoutes, item]);
-        });
+      console.log(result)
     } catch (error) {
       console.error("Error planning route:", error);
       alert("無法獲取AI推薦路線，請稍後再試。");
     }
   };
+
   return (
     <div>
-      <h3>路線規劃</h3>
-      {locations.map((location, index) => (
+      {cityInputs.map((city, index) => (
         <input
-          style={{ marginRight: "10px", marginBottom: "8px" }}
           key={index}
           type="text"
-          value={location}
-          onChange={(e) => handleLocationChange(index, e.target.value)}
-          placeholder={`地點 ${index + 1}`}
+          value={city}
+          onChange={(e) => {
+            const newCityInputs = [...cityInputs];
+            newCityInputs[index] = e.target.value;
+            setCityInputs(newCityInputs);
+          }}
+          placeholder={`第${index + 1}天城市名稱`}
+          style={{ marginBottom: "10px", padding: "5px",marginRight: "10px" }}
         />
       ))}
-      <div style={{ marginTop: "16px", marginBottom: "16px" }}>
-        <Button style={{ marginRight: "10px" }} onClick={handleAddLocation}>
-          新增地點
-        </Button>
-        <Button style={{ marginRight: "10px" }} onClick={handleRemoveLocation}>
-          刪除地點
-        </Button>
-        <Button
-          style={{ marginRight: "10px", backgroundColor: "#158328" }}
-          onClick={handleCalculateRoute}
-        >
-          計算路線
-        </Button>
-      </div>
-
       <div>
-        <p>
-          全部距離：
-          <span style={{ fontWeight: "bold", color: "#ff672b" }}>
-            {(totalDistance / 1000).toFixed(2)}
-          </span>
-        </p>
-        <p>
-          全部車程時間：
-          <span style={{ fontWeight: "bold", color: "#ff672b" }}>
-            {Math.floor(totalDuration / 3600)} 小時{" "}
-            {Math.floor((totalDuration % 3600) / 60)} 分鐘
-          </span>
-        </p>
-        <p>
-          AI推薦路線：
-          <span style={{ fontWeight: "bold", color: "#ff672b" }}>
-            {routes.map((route, index) => (
-              <span key={index}>
-                {route.name}
-                {index < routes.length - 1 && " > "}
-              </span>
-            ))}
-          </span>
-        </p>
-      </div>
-      {useJsApiLoader({
-        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-      }).isLoaded ? (
-        <GoogleMap
-          mapContainerStyle={{ width: "100%", height: "400px" }}
-          center={{ lat: 25.033964, lng: 121.564468 }}
-          zoom={10}
+        <button
+          onClick={handleSearch}
+          style={{ marginLeft: "10px", padding: "10px 15px", backgroundColor: "#2dac2d",border:'none',color:'white',borderRadius:'5px',cursor:'pointer' }}
         >
-          {directions && <DirectionsRenderer directions={directions} />}
-        </GoogleMap>
-      ) : (
-        <p>Loading map...</p>
-      )}
+          路線規劃
+        </button>
+      </div>
+      <div ref={mapRef} style={{ height: "400px", width: "100%", display: "none" }}></div>
     </div>
   );
 };

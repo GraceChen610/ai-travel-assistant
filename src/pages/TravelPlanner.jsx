@@ -567,7 +567,7 @@ export default function TravelPlanner() {
 
             {active === 3 && (
               <Stack mt="xl">
-                <MapComponent data={data} />
+                <MapComponent data={data} calculateDays={calculateDays()} />
               </Stack>
             )}
 
