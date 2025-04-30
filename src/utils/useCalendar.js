@@ -40,7 +40,11 @@ export function useCalendar() {
 
         if (!response.ok) {
           const errorData = await response.json();
-          console.error("事件新增失敗：", event.title, errorData);
+          console.error(
+            "Failed to add calendar events：",
+            event.title,
+            errorData
+          );
           continue; // 不中斷，繼續處理下一筆
         }
 
@@ -49,16 +53,16 @@ export function useCalendar() {
 
       setSuccess(true);
       showNotification({
-        title: "成功",
-        message: "所有行事曆活動已成功新增！🎉",
+        title: "Success",
+        message: "All calendar events have been successfully added! 🎉",
         color: "green",
       });
     } catch (err) {
-      console.error("發生例外錯誤：", event.title, err);
+      console.error("An unexpected error occurred:", event.title, err);
       setError(err.message);
       showNotification({
-        title: "錯誤",
-        message: err.message || "新增行事曆失敗",
+        title: "Error",
+        message: err.message || "Failed to add calendar events",
         color: "red",
       });
       
