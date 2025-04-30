@@ -245,7 +245,7 @@ export default function TravelPlanner() {
           <strong>Activity Preferences：</strong>
         </Text>
         <Text size="sm">
-          {form.activity_preferences.join("、") || "未選擇"}
+          {form.activity_preferences.join("、") || "none"}
         </Text>
       </Group>
 
@@ -621,7 +621,7 @@ export default function TravelPlanner() {
               {active !== 3 && (
                 <Button
                   onClick={nextStep}
-                  disabled={active === 3}
+                  disabled={active === 3 || loading}
                   color={themeColor}
                 >
                   {active === 2 ? "produce itinerary" : "Next step"}
