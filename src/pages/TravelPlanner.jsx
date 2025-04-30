@@ -181,7 +181,7 @@ export default function TravelPlanner() {
   }, []);
 
   const SummaryPanel = () => (
-    <Paper p="md" radius="xl" shadow="md" withBorder bg="#fffffc" w={310}>
+    <Paper p="md" radius="xl" shadow="md" withBorder bg="#fffffc" w={330}>
       <Title order={4} mb="sm" color="pink.6" style={{ color: themeColor }}>
         📋 Summary
       </Title>
@@ -192,7 +192,7 @@ export default function TravelPlanner() {
           <FaPlaneDeparture size={22} />
         </ThemeIcon>
         <Text size="sm">
-          <strong>出發機場：</strong>
+          <strong>Departure Airport：</strong>
           {form.departure_city || "未填寫"}
         </Text>
       </Group>
@@ -202,7 +202,7 @@ export default function TravelPlanner() {
           <MdOutlineMyLocation size={20} />
         </ThemeIcon>
         <Text size="sm">
-          <strong>抵達機場：</strong>
+          <strong>Arrival airport：</strong>
           {form.destination_city || "未填寫"}
         </Text>
       </Group>
@@ -212,7 +212,7 @@ export default function TravelPlanner() {
           <MdOutlineEventAvailable size={22} />
         </ThemeIcon>
         <Text size="sm">
-          <strong>旅行日期：</strong>
+          <strong>travel date：</strong>
           {dayjs(form.departureDate).isValid()
             ? dayjs(form.departureDate).format("YYYY-MM-DD")
             : ""}
@@ -231,8 +231,8 @@ export default function TravelPlanner() {
               <MdAccessTime size={22} />
             </ThemeIcon>
             <Text size="sm">
-              <strong>旅程天數：</strong>
-              {calculateDays()} 天
+              <strong>Journey duration：</strong>
+              {calculateDays()} Days
             </Text>
           </Group>
         )}
@@ -242,7 +242,7 @@ export default function TravelPlanner() {
           <FaTasks size={20} />
         </ThemeIcon>
         <Text size="sm">
-          <strong>活動偏好：</strong>
+          <strong>Activity Preferences：</strong>
         </Text>
         <Text size="sm">
           {form.activity_preferences.join("、") || "未選擇"}
@@ -254,8 +254,8 @@ export default function TravelPlanner() {
           <IoChatboxEllipsesOutline size={20} />
         </ThemeIcon>
         <Text size="sm">
-          <strong>備註：</strong>
-          {form.notes || "無"}
+          <strong>Notes：</strong>
+          {form.notes || "none"}
         </Text>
       </Group>
     </Paper>
@@ -360,7 +360,6 @@ export default function TravelPlanner() {
         // console.log("Calendar events:", calendarEvents);
 
         await createEvents(accessToken, calendarEvents);
-
       },
       onError: () => {
         console.error("Login Failed");
@@ -370,7 +369,7 @@ export default function TravelPlanner() {
 
     return (
       <Button onClick={() => login()} color={themeColor} loading={isLoading}>
-        加入 Google 行事曆
+        Add to Google Calendar
       </Button>
     );
   }
@@ -399,18 +398,18 @@ export default function TravelPlanner() {
         >
           <Stepper.Step
             style={{ outline: "none" }}
-            label="基本資訊"
-            description="出發地與抵達"
+            label="Basic Information"
+            description="Departure and destination"
           />
           <Stepper.Step
             style={{ outline: "none" }}
-            label="航空資訊"
-            description="航班選擇"
+            label="Aviation Information"
+            description="Flight Selection"
           />
           <Stepper.Step
             style={{ outline: "none" }}
-            label="旅遊偏好"
-            description="美食與活動"
+            label="Travel Preferences"
+            description="Activity Preferences"
           />
           {/* <Stepper.Step
             style={{ outline: "none" }}
@@ -419,8 +418,8 @@ export default function TravelPlanner() {
           /> */}
           <Stepper.Step
             style={{ outline: "none" }}
-            label="完成"
-            description="確認與產出行程"
+            label="Complete"
+            description="Confirm and produce itinerary"
           />
         </Stepper>
         <Group align="flex-start" justify="space-between" spacing="xl" mt="xl">
@@ -429,7 +428,7 @@ export default function TravelPlanner() {
               <Stack mt="xl">
                 <Stack align="center" justify="center" gap="md">
                   <TextInput
-                    label="出發機場"
+                    label="Departure Airport"
                     size="md"
                     value={form.departure_city}
                     onChange={(e) =>
@@ -442,7 +441,7 @@ export default function TravelPlanner() {
                     }}
                   />
                   <TextInput
-                    label="抵達機場"
+                    label="Arrival airport"
                     size="md"
                     value={form.destination_city}
                     onChange={(e) =>
@@ -455,15 +454,18 @@ export default function TravelPlanner() {
                     }}
                   />
                   <Text color={themeColor} size="sm">
-                    *目前僅支援部分國家:美國、西班牙、英國、德國和印度
+                    **Currently only supports search countries: United States,
+                    Spain, United Kingdom, Germany and India
                   </Text>
-                  <div>
+                  <Stack>
                     <Text color="#2e9aff">
-                      <strong>請選擇旅行日期:</strong>
+                      <strong>Please select the travel date: </strong>
+                      <br />
+                      *can be single day or interval
                     </Text>
                     <DatePicker
                       type="range"
-                      label="旅行日期"
+                      label="Travel Date"
                       value={[form.departureDate, form.returnDate]}
                       onChange={([start, end]) => {
                         // 使用當地午夜12點而不是0點，避免時區轉換問題
@@ -507,15 +509,17 @@ export default function TravelPlanner() {
                         Intl.DateTimeFormat().resolvedOptions().timeZone
                       } // 使用當地時區
                     />
-                  </div>
+                  </Stack>
                   <div>
                     <Text color="#2e9aff">
-                      <strong>計畫旅程天數：</strong>
-                      {(form.departureDate &&
-                        form.returnDate &&
-                        calculateDays()) ??
-                        0}{" "}
-                      天
+                      <strong>
+                        Planned travel days：
+                        {(form.departureDate &&
+                          form.returnDate &&
+                          calculateDays()) ??
+                          0}{" "}
+                        Days
+                      </strong>
                     </Text>
                   </div>
                 </Stack>
@@ -542,7 +546,7 @@ export default function TravelPlanner() {
                   <Text color="#59a803" mb="sm">
                     <strong> Activity Preferences</strong>
                   </Text>
-                  { [
+                  {[
                     "Natural Scenery (Mountains, Lakes, Beaches)",
                     "Indoor Attractions (Museums, Art Galleries, Exhibition Halls)",
                     "Historical and Cultural Sites (Monuments, Temples)",
@@ -612,7 +616,7 @@ export default function TravelPlanner() {
                 disabled={active === 0}
                 color={themeColor}
               >
-                上一步
+                Previous step
               </Button>
               {active !== 3 && (
                 <Button
@@ -620,7 +624,7 @@ export default function TravelPlanner() {
                   disabled={active === 3}
                   color={themeColor}
                 >
-                  {active === 2 ? "產生行程" : "下一步"}
+                  {active === 2 ? "produce itinerary" : "Next step"}
                 </Button>
               )}
               {active === 3 && (
