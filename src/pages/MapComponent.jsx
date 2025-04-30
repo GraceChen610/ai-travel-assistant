@@ -5,7 +5,7 @@ import { flightMockData } from "../mocks/flightMockData.js";
 
 
 
-export const MapComponent = ({ data, calculateDays }) => {
+export const MapComponent = ({ userFlight, calculateDays,form }) => {
   const mapRef = useRef(null);
   const [cityInputs, setCityInputs] = useState(
     Array.from({ length: calculateDays }, () => "")
@@ -18,7 +18,7 @@ export const MapComponent = ({ data, calculateDays }) => {
     libraries: ["places"],
   });
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if(cityInputs.some(city => city == "")) {
       alert("請填寫所有城市名稱！");
       return;
@@ -28,7 +28,7 @@ export const MapComponent = ({ data, calculateDays }) => {
       const groupedData = [];
 
       cityInputs.forEach((city, dayIndex) => {
-        geocoder.geocode({ address: city }, async (results, status) => {
+        geocoder.geocode({ address: city }, (results, status) => {
           if (status === window.google.maps.GeocoderStatus.OK) {
             const location = results[0].geometry.location;
             const map = new window.google.maps.Map(mapRef.current, {
@@ -37,7 +37,7 @@ export const MapComponent = ({ data, calculateDays }) => {
             });
 
             const service = new window.google.maps.places.PlacesService(map);
-            const keywords = [...data.form.activity_preferences, "餐廳", "旅館"];
+            const keywords = [...form.activity_preferences, "餐廳", "旅館"];
             const itineraryData = [];
 
             keywords.forEach((keyword) => {
@@ -46,12 +46,10 @@ export const MapComponent = ({ data, calculateDays }) => {
                 radius: 5000,
                 keyword: `${city} ${keyword}`,
               };
-
+              
               service.nearbySearch(request, (results, status) => {
                 if (status === window.google.maps.places.PlacesServiceStatus.OK) {
                   results.forEach((place) => {
-                    console.log(place)
-                    console.log(place.name)
                     const isDuplicate = itineraryData.some(
                       (item) => item.name === place.name
                     );
@@ -61,6 +59,7 @@ export const MapComponent = ({ data, calculateDays }) => {
                         name: place.name,
                         latitude: place.geometry.location.lat(),
                         longitude: place.geometry.location.lng(),
+                        types: setTag(place.types,)
                       });
                     }
                   });
@@ -79,11 +78,12 @@ export const MapComponent = ({ data, calculateDays }) => {
                 }
               });
             });
-            // 打後端 查出AI推薦路線
-            await recommendRoutes()
           }
         });
       });
+      
+      // 打後端 查出AI推薦路線
+      await recommendRoutes()
     }
   };
 
@@ -91,42 +91,48 @@ export const MapComponent = ({ data, calculateDays }) => {
     return <div>Loading Google Maps...</div>;
   }
 
+  const setTag = (types) => {
+    if(types.includes("lodging")){ //住宿
+      return "lodging"
+    }else if(types.includes("restaurant")){ //餐廳
+      return "restaurant"
+    }else{
+      return "attractions" //景點
+    }
+  }
+
 
   const setFlightData = ()=>{
     const userFlightData =
-    data.userFlight?.segments ?? flightMockData.data[0].segments;
-    
+    userFlight?.segments ?? flightMockData.data[0].segments;
+    console.log(userFlightData)
     // 取得使用者的往返航班資料，包含抵達時間、起降機場等資訊
     setFlightInfo(combineFlightInfo(
       userFlightData,
-      data.form.departure_city,
-      data.form.destination_city
+      form.departure_city,
+      form.destination_city
     ));
   }
 
 
   const recommendRoutes = async () => {
     // 處理 API 資料
-    await setFlightData();
-    
+    setFlightData();
+    console.log(flightInfo)
     let arrivalFlight = {
-      departure_flight: {
         name: flightInfo.arrival.iataCode, // 抵達機場代碼
         latitude: null,
         longitude: null,
         arrival_time: flightInfo.arrival.at, // 抵達時間
-      },
     };
 
     let departureFlight ={}
     if(flightInfo.departure != 'noBackFlight'){
       departureFlight = {
-        departure_flight: {
           name: flightInfo.departure.iataCode, // 離開機場代碼
           latitude: null,
           longitude: null,
           arrival_time: flightInfo.departure.at, // 抵達時間
-        },
       };
     }
 
@@ -164,7 +170,7 @@ export const MapComponent = ({ data, calculateDays }) => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ setApiData }),
+          body: JSON.stringify({ notes:form.notes,data:[...setApiData] }),
         }
       );
 
@@ -176,7 +182,7 @@ export const MapComponent = ({ data, calculateDays }) => {
       console.log(result)
     } catch (error) {
       console.error("Error planning route:", error);
-      alert("無法獲取AI推薦路線，請稍後再試。");
+      alert("Unable to fetch AI-recommended routes. Please try again later.");
     }
   };
 
@@ -192,17 +198,19 @@ export const MapComponent = ({ data, calculateDays }) => {
             newCityInputs[index] = e.target.value;
             setCityInputs(newCityInputs);
           }}
-          placeholder={`第${index + 1}天城市名稱`}
+          placeholder={`City name for day ${index + 1}`}
           style={{ marginBottom: "10px", padding: "5px",marginRight: "10px" }}
         />
       ))}
       <div>
+      {calculateDays > 0 &&(
         <button
           onClick={handleSearch}
           style={{ marginLeft: "10px", padding: "10px 15px", backgroundColor: "#2dac2d",border:'none',color:'white',borderRadius:'5px',cursor:'pointer' }}
         >
-          路線規劃
+          Plan Route
         </button>
+      )}
       </div>
       <div ref={mapRef} style={{ height: "400px", width: "100%", display: "none" }}></div>
     </div>

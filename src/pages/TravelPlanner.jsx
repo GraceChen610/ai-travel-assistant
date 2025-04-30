@@ -395,11 +395,11 @@ export default function TravelPlanner() {
             label="旅遊偏好"
             description="美食與活動"
           />
-          <Stepper.Step
+          {/* <Stepper.Step
             style={{ outline: "none" }}
             label="行程規劃"
             description="調整行程"
-          />
+          /> */}
           <Stepper.Step
             style={{ outline: "none" }}
             label="完成"
@@ -562,16 +562,19 @@ export default function TravelPlanner() {
                     }}
                   />
                 </div>
+                <Stack mt="xl">
+                  <MapComponent userFlight={flightSearchResults[selectedId ? Number(selectedId) - 1 : null]} calculateDays={calculateDays()} form={form} />
+                </Stack>
               </Stack>
             )}
 
-            {active === 3 && (
+            {/* {active === 3 && (
               <Stack mt="xl">
                 <MapComponent data={data} calculateDays={calculateDays()} />
               </Stack>
-            )}
+            )} */}
 
-            {active === 4 && (
+            {active === 3 && (
               <Box mt="xl">
                 <Itinerary data={data} />
               </Box>
@@ -585,28 +588,28 @@ export default function TravelPlanner() {
               >
                 上一步
               </Button>
-              {active !== 4 && (
+              {active !== 3 && (
                 <Button
                   onClick={nextStep}
-                  disabled={active === 4}
+                  disabled={active === 3}
                   color={themeColor}
                 >
-                  {active === 3 ? "產生行程" : "下一步"}
+                  {active === 2 ? "產生行程" : "下一步"}
                 </Button>
               )}
-              {active === 4 && (
+              {active === 3 && (
                 <GoogleOAuthProvider clientId={CLIENT_ID}>
                   <CustomGoogleLoginButton />
                 </GoogleOAuthProvider>
               )}
             </Group>
           </Box>
-          {!isMobile && active !== 3 && active !== 4 && (
+          {!isMobile && active !== 2 && active !== 3 && (
             <Box mt="xl">
               <SummaryPanel />
             </Box>
           )}
-          {active === 4 && (
+          {active === 3 && (
             <Box mt="xl">
               <EmailPanel />
             </Box>
