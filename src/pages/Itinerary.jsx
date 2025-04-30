@@ -72,65 +72,16 @@ const flightData = {
   ],
 };
 
-function ItineraryTimeline({ userItinerary }) {
-  return (
-    <Box>
-      <Title order={4} color="orange.7" mb="md">
-        Itinerary
-      </Title>
-
-      {userItinerary.map((day, index) => {
-        const formattedDate = dayjs()
-          .add(day.day - 1, "day")
-          .format("MMMM D");
-
-        return (
-          <Box key={day.day} mb="lg">
-            {/* 日期標題 */}
-            <Text size="sm" color="gray.7" mb="xs">
-              {formattedDate}
-            </Text>
-
-            <Timeline active={-1} bulletSize={18} lineWidth={2} color="orange">
-              {day.itinerary.map((item) => {
-                const stayTime = item.stay_time || 0; // 預設為 0
-                return (
-                  <Timeline.Item key={item.order} title={item.name}>
-                    <Text size="sm">
-                      {item.start_time} – Stay:{" "}
-                      {stayTime >= 60
-                        ? `${Math.floor(stayTime / 60)} hr ${stayTime % 60} min`
-                        : `${stayTime} min`}
-                    </Text>
-                  </Timeline.Item>
-                );
-              })}
-            </Timeline>
-
-            {/* 天與天之間的分隔線（非最後一天才顯示） */}
-            {index !== userItinerary.length - 1 && (
-              <Divider my="lg" variant="dashed" />
-            )}
-          </Box>
-        );
-      })}
-    </Box>
-  );
-}
-
 export default function Itinerary({ data }) {
   const userFlight = !isEmptyObject(data.userFlight)
     ? data.userFlight
     : flightData;
 
   const form = data.form;
-  console.log("data", data);
-  console.log("userFlight", userFlight);
 
   const itineraryData = !isEmptyObject(data?.itinerary)
     ? data.itinerary
     : itineraryMockData;
-  console.log("itineraryData", itineraryData);
   const userItinerary = addStayTimeToItineraries(itineraryData);
 
   const departureDate = formatDate(form?.departureDate);
@@ -285,15 +236,10 @@ export default function Itinerary({ data }) {
         </Title>
         <Box w="100%">
           {userItinerary.map((day, index) => {
-            const formattedDate = dayjs()
-              .add(day.day - 1, "day")
-              .format("MMMM D");
-
             return (
               <Box key={day.day} mb="lg" ml="40">
                 {/* 日期標題 */}
                 <Text size="sm" color="#ff672b" mb="xs">
-                  {/* {formattedDate} */}
                   Day {day.day}
                 </Text>
 

@@ -3,17 +3,21 @@ import { GoogleMap, useJsApiLoader } from "@react-google-maps/api";
 import { combineFlightInfo, addDays } from "../utils/function.js";
 import { flightMockData } from "../mocks/flightMockData.js";
 import { itineraryMockData } from "../mocks/itineraryMockData.js";
+import { Button } from "@mantine/core";
 const BASEURL = import.meta.env.VITE_BASEURL;
+const libraries = ["places"]; // 在組件外部定義
 
 export const MapComponent = ({ userFlight, calculateDays, form, setData }) => {
   const mapRef = useRef(null);
+  const [loading, setLoading] = useState(false); // Add loading state
+
   const [cityInputs, setCityInputs] = useState(
     Array.from({ length: calculateDays }, () => "")
   ); // 根據 calculateDays 初始化城市輸入框
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY, // 替換為您的 Google Maps API 金鑰
-    libraries: ["places"],
+    libraries: libraries,
   });
 
   const handleSearch = async () => {
@@ -27,6 +31,8 @@ export const MapComponent = ({ userFlight, calculateDays, form, setData }) => {
       const groupedData = [];
 
       try {
+        setLoading(true); // Set loading to true before fetching
+
         // Create a promise for each city to handle all async operations
         const cityPromises = cityInputs.map((city, dayIndex) => {
           return new Promise((resolve, reject) => {
@@ -41,7 +47,11 @@ export const MapComponent = ({ userFlight, calculateDays, form, setData }) => {
                 const service = new window.google.maps.places.PlacesService(
                   map
                 );
-                const keywords = [...form.activity_preferences, "餐廳", "旅館"];
+                const keywords = [
+                  ...form.activity_preferences,
+                  "restaurant",
+                  "lodging",
+                ];
                 const itineraryData = [];
 
                 // Track all search promises for this city
@@ -50,7 +60,7 @@ export const MapComponent = ({ userFlight, calculateDays, form, setData }) => {
                     const request = {
                       location,
                       radius: 5000,
-                      keyword: `${city} ${keyword}`,
+                      types: `${city} ${keyword}`,
                     };
 
                     service.nearbySearch(request, (results, status) => {
@@ -209,7 +219,6 @@ export const MapComponent = ({ userFlight, calculateDays, form, setData }) => {
       }
 
       const result = await response.json();
-      console.log(result);
 
       const itinerary = result.data.map((day, index) => {
         day.date = addDays(form.departureDate, index); // index從0開始，所以第一天是+0，第二天是+1...
@@ -220,6 +229,9 @@ export const MapComponent = ({ userFlight, calculateDays, form, setData }) => {
         ...prev,
         itinerary: itinerary,
       })); // 更新狀態
+      alert(
+        "AI recommended route planning is completed! Please click next to view the itinerary"
+      );
     } catch (error) {
       console.error("Error planning route:", error);
       alert(
@@ -231,6 +243,8 @@ export const MapComponent = ({ userFlight, calculateDays, form, setData }) => {
         return day;
       });
       setData((prev) => ({ ...prev, itinerary: itinerary }));
+    } finally {
+      setLoading(false); // Set loading to false after fetching
     }
   };
 
@@ -274,20 +288,15 @@ export const MapComponent = ({ userFlight, calculateDays, form, setData }) => {
       ))}
       <div>
         {calculateDays > 0 && (
-          <button
+          <Button
             onClick={handleSearch}
             style={{
-              marginLeft: "10px",
-              padding: "10px 15px",
               backgroundColor: "#2dac2d",
-              border: "none",
-              color: "white",
-              borderRadius: "5px",
-              cursor: "pointer",
             }}
+            disabled={loading}
           >
             Plan Route
-          </button>
+          </Button>
         )}
       </div>
       <div

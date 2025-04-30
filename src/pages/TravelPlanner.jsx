@@ -71,6 +71,40 @@ export default function TravelPlanner() {
   }); // 用于存储行程数据
   const [flightSearchResults, setFlightSearchResults] = useState([]);
 
+  const activityOptions = [
+    {
+      label: "Natural Scenery (Mountains, Lakes, Beaches)",
+      type: ["natural_feature", "beach"],
+    },
+    {
+      label: "Indoor Attractions (Museums, Art Galleries, Exhibition Halls)",
+      type: ["museum", "art_gallery", "establishment"],
+    },
+    {
+      label: "Historical and Cultural Sites (Monuments, Temples)",
+      type: ["monument", "temple", "church"],
+    },
+    {
+      label: "Shopping (Department Stores, Outlets, Shopping Streets)",
+      type: ["department_store", "shopping_mall", "store"],
+    },
+    {
+      label: "Theme Parks / Zoos / Aquariums",
+      type: ["amusement_park", "zoo", "aquarium"],
+    },
+    {
+      label: "Family-Friendly",
+      type: [
+        "amusement_park",
+        "aquarium",
+        "zoo",
+        "park",
+        "playground",
+        "movie_theater",
+      ],
+    },
+  ];
+
   const fetchData = async () => {
     setLoading(true); // Set loading to true before fetching
     try {
@@ -109,11 +143,6 @@ export default function TravelPlanner() {
       setActive(1);
     }
     if (active === 1) {
-      // console.log(
-      //   "選擇",
-      //   selectedFlightIndex,
-      //   flightSearchResults[selectedFlightIndex]
-      // );
       setData((prev) => {
         return {
           ...prev,
@@ -134,10 +163,16 @@ export default function TravelPlanner() {
   const togglePreference = (type, value) => {
     setForm((prev) => {
       const current = prev[type];
+      const valueString = JSON.stringify(value);
+
+      const isPresent = current.some(
+        (item) => JSON.stringify(item) === valueString
+      );
+
       return {
         ...prev,
-        [type]: current.includes(value)
-          ? current.filter((v) => v !== value)
+        [type]: isPresent
+          ? current.filter((item) => JSON.stringify(item) !== valueString)
           : [...current, value],
       };
     });
@@ -405,9 +440,7 @@ export default function TravelPlanner() {
       maw={1200}
       mx="auto"
       mih="90vh"
-      miw={900}
-      px="xl"
-      py="xl"
+      p="xl"
       style={{
         borderRadius: "30px",
         backgroundColor: "fffaf2",
@@ -572,23 +605,18 @@ export default function TravelPlanner() {
                   <Text color="#59a803" mb="sm">
                     <strong> Activity Preferences</strong>
                   </Text>
-                  {[
-                    "Natural Scenery (Mountains, Lakes, Beaches)",
-                    "Indoor Attractions (Museums, Art Galleries, Exhibition Halls)",
-                    "Historical and Cultural Sites (Monuments, Temples)",
-                    "Shopping (Department Stores, Outlets, Shopping Streets)",
-                    "Theme Parks / Zoos / Aquariums",
-                    "Local Markets / Flea Markets",
-                    "Night Views / Nighttime Photo Spots",
-                    "Family-Friendly",
-                  ].map((item) => (
+                  {activityOptions.map((option) => (
                     <Checkbox
-                      key={item}
-                      label={item}
-                      checked={form.activity_preferences.includes(item)}
+                      key={option.label}
+                      label={option.label}
+                      checked={form.activity_preferences.some(
+                        (selectedType) =>
+                          JSON.stringify(selectedType) ===
+                          JSON.stringify(option.type)
+                      )}
                       onChange={() =>
-                        togglePreference("activity_preferences", item)
-                      }
+                        togglePreference("activity_preferences", option.type)
+                      } // 傳遞 type (陣列)
                       color={themeColor}
                     />
                   ))}
@@ -642,7 +670,7 @@ export default function TravelPlanner() {
                 disabled={active === 0}
                 color={themeColor}
               >
-                Previous step
+                Prev step
               </Button>
               {active !== 3 && (
                 <Button
@@ -650,7 +678,7 @@ export default function TravelPlanner() {
                   disabled={active === 3 || loading}
                   color={themeColor}
                 >
-                  {active === 2 ? "produce itinerary" : "Next step"}
+                  Next step
                 </Button>
               )}
               {active === 3 && (
