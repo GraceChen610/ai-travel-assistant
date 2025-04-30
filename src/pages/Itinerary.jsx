@@ -127,8 +127,11 @@ export default function Itinerary({ data }) {
   console.log("data", data);
   console.log("userFlight", userFlight);
 
-  const userItinerary = addStayTimeToItineraries(itineraryMockData);
-  console.log("userItinerary", userItinerary);
+  const itineraryData = !isEmptyObject(data?.itinerary)
+    ? data.itinerary
+    : itineraryMockData;
+  console.log("itineraryData", itineraryData);
+  const userItinerary = addStayTimeToItineraries(itineraryData);
 
   const departureDate = formatDate(form?.departureDate);
   const returnDate = formatDate(form.returnDate);

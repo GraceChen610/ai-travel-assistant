@@ -1,6 +1,7 @@
 export const itineraryMockData = [
   {
     day: 1,
+    date: "2025-05-01",
     itinerary: [
       {
         address:
@@ -54,6 +55,7 @@ export const itineraryMockData = [
   },
   {
     day: 2,
+    date: "2025-05-02",
     itinerary: [
       {
         address:
@@ -89,6 +91,7 @@ export const itineraryMockData = [
   },
   {
     day: 3,
+    date: "2025-05-03",
     itinerary: [
       {
         address: "Hengchun Township, Pingtung County, Taiwan",

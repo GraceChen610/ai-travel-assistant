@@ -27,19 +27,21 @@ export function useCalendar() {
               description: event.description,
               start: {
                 dateTime: event.startDateTime,
-                timeZone: event.timeZone || "Asia/Tokyo",
+                timeZone: event.timeZone || "Asia/Taipei",
               },
               end: {
                 dateTime: event.endDateTime,
-                timeZone: event.timeZone || "Asia/Tokyo",
+                timeZone: event.timeZone || "Asia/Taipei",
               },
             }),
           }
         );
 
+
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error.message || "Failed to create event");
+          console.error("事件新增失敗：", event.title, errorData);
+          continue; // 不中斷，繼續處理下一筆
         }
 
         await response.json(); // 解析 API 回應（可以加紀錄）
@@ -52,13 +54,14 @@ export function useCalendar() {
         color: "green",
       });
     } catch (err) {
-      console.error("Error creating calendar events:", err);
+      console.error("發生例外錯誤：", event.title, err);
       setError(err.message);
       showNotification({
         title: "錯誤",
         message: err.message || "新增行事曆失敗",
         color: "red",
       });
+      
     } finally {
       setIsLoading(false);
     }

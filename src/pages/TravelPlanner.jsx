@@ -29,6 +29,8 @@ import dayjs from "dayjs";
 import html2canvas from "html2canvas";
 
 import { flightMockData } from "../mocks/flightMockData.js";
+import { itineraryMockData } from "../mocks/itineraryMockData.js";
+
 // import { fakedata } from "./fakeData_10";
 
 import Itinerary from "./Itinerary";
@@ -48,8 +50,8 @@ export default function TravelPlanner() {
   const [loading, setLoading] = useState(false); // Add loading state
 
   const [form, setForm] = useState({
-    departure_city: "SYD", //旅客出發的城市/機場 IATA 代碼，例如SYD，亦可可傳中文地名
-    destination_city: "BKK", //旅客抵達的城市/機場 IATA 代碼，例如BKK
+    departure_city: "LON", //旅客出發的城市/機場 IATA 代碼，例如SYD，亦可可傳中文地名
+    destination_city: "LAX", //旅客抵達的城市/機場 IATA 代碼，例如BKK
     departureDate: null, //出發日期(格式:2017-12-25)
     returnDate: null, //回程日期
     adults: 1, //成人數量
@@ -65,7 +67,7 @@ export default function TravelPlanner() {
   const [data, setData] = useState({
     form: form,
     userFlight: {},
-    hotel: {},
+    itinerary: {},
   }); // 用于存储行程数据
   const [flightSearchResults, setFlightSearchResults] = useState([]);
 
@@ -318,32 +320,47 @@ export default function TravelPlanner() {
     "Content-Type": "application/json",
   };
 
-  function CustomGoogleLoginButton() {
+  function CustomGoogleLoginButton({ data }) {
     const { createEvents, isLoading } = useCalendar();
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     const login = useGoogleLogin({
       onSuccess: async (tokenResponse) => {
         const accessToken = tokenResponse.access_token;
-        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const calendarData = data.itinerary
+          ? data.itinerary
+          : itineraryMockData;
+        const calendarEvents = calendarData?.flatMap((day, dayIndex) => {
+          // 確保day.itinerary存在
+          if (!day.itinerary || !Array.isArray(day.itinerary)) {
+            return [];
+          }
 
-        await createEvents(accessToken, [
-          {
-            title: "東京自由行 Day 1",
-            description: "抵達成田機場，入住飯店",
-            location: "東京都新宿區",
-            startDateTime: "2025-05-10T10:00:00",
-            endDateTime: "2025-05-10T18:00:00",
-            timeZone: timeZone,
-          },
-          {
-            title: "東京自由行 Day 2",
-            description: "淺草寺、晴空塔觀光",
-            location: "東京都墨田區",
-            startDateTime: "2025-05-11T09:00:00",
-            endDateTime: "2025-05-11T17:00:00",
-            timeZone: timeZone,
-          },
-        ]);
+          return day.itinerary.map((event) => {
+            // 建立動態的標題
+            const title = `${form.destination_city} Free travel - Day ${
+              dayIndex + 1
+            }`;
+
+            // 事件起始時間和結束時間
+            const startDateTime = `${day.date}T${event.start_time}:00`;
+            const endDateTime = `${day.date}T${event.end_time}:00`;
+
+            return {
+              title: title,
+              description: event.name || event.description || "",
+              location: event.address || event.location || "",
+              startDateTime: startDateTime,
+              endDateTime: endDateTime,
+              timeZone: timeZone,
+            };
+          });
+        });
+
+        // console.log("Calendar events:", calendarEvents);
+
+        await createEvents(accessToken, calendarEvents);
+
       },
       onError: () => {
         console.error("Login Failed");
@@ -563,7 +580,16 @@ export default function TravelPlanner() {
                   />
                 </div>
                 <Stack mt="xl">
-                  <MapComponent userFlight={flightSearchResults[selectedId ? Number(selectedId) - 1 : null]} calculateDays={calculateDays()} form={form} />
+                  <MapComponent
+                    userFlight={
+                      flightSearchResults[
+                        selectedId ? Number(selectedId) - 1 : null
+                      ]
+                    }
+                    calculateDays={calculateDays()}
+                    form={form}
+                    setData={setData}
+                  />
                 </Stack>
               </Stack>
             )}
@@ -599,7 +625,7 @@ export default function TravelPlanner() {
               )}
               {active === 3 && (
                 <GoogleOAuthProvider clientId={CLIENT_ID}>
-                  <CustomGoogleLoginButton />
+                  <CustomGoogleLoginButton data={data} />
                 </GoogleOAuthProvider>
               )}
             </Group>

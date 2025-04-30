@@ -54,35 +54,43 @@ const isEmptyObject = (obj) => {
 function combineFlightInfo(segments, departure, arrival) {
   let departureInfo = null;
   let arrivalInfo = null;
-  
+
+  console.log("departure city", departure);
+  console.log("arrival city", arrival);
+
   // 遍歷所有段落以查找匹配的出發和到達信息
   for (let i = 0; i < segments.length; i++) {
     const segment = segments[i];
-    
-    if (segment.arrival.iataCode === departure) { // ! 返程，應該是這樣，要再確認下資料結構
-      departureInfo = segment.arrival;
+
+    if (segment.departure.iataCode === departure) {
+      // ! 返程，應該是這樣，要再確認下資料結構
+      departureInfo = segment.departure;
     } else {
-      departureInfo = 'noBackFlight';
-      ;
+      departureInfo = "noBackFlight";
     }
-    if (segment.arrival.iataCode === arrival) { // 出發
+    if (segment.arrival.iataCode === arrival) {
+      // 出發
       arrivalInfo = segment.arrival;
     }
-    
+
     // 如果兩者都找到，可以停止搜索
     if (departureInfo && arrivalInfo) {
       break;
     }
   }
-  
+
   // 如果兩部分都找到了，返回組合對象
   if (departureInfo && arrivalInfo) {
+    console.log("回傳內容: ", {
+      departure: departureInfo,
+      arrival: arrivalInfo,
+    });
     return {
       departure: departureInfo,
-      arrival: arrivalInfo
+      arrival: arrivalInfo,
     };
   }
-  
+
   return null; // 如果出發或到達信息未找到，則返回null
 }
 
@@ -99,16 +107,21 @@ function calculateStayTime(startTime, endTime) {
 
 // 幫每個行程加上 stay_time
 function addStayTimeToItineraries(schedule) {
-  return schedule.map(day => {
-    const updatedItinerary = day.itinerary.map(spot => ({
+  return schedule?.map((day) => {
+    const updatedItinerary = day.itinerary.map((spot) => ({
       ...spot,
-      stay_time: calculateStayTime(spot.start_time, spot.end_time)
+      stay_time: calculateStayTime(spot.start_time, spot.end_time),
     }));
     return {
       ...day,
-      itinerary: updatedItinerary
+      itinerary: updatedItinerary,
     };
   });
+}
+
+// 輸入日期加幾天
+function addDays(dateString, days) {
+  return dayjs(dateString).add(days, "day").format("YYYY-MM-DD");
 }
 
 export {
@@ -119,4 +132,5 @@ export {
   isEmptyObject,
   combineFlightInfo,
   addStayTimeToItineraries,
+  addDays,
 };
