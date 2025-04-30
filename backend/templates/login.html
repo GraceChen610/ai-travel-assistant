@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>登入 - 行事曆應用</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .login-btn {
+            display: inline-block;
+            background-color: #4285f4;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .login-btn:hover {
+            background-color: #357abd;
+        }
+    </style>
+</head>
+<body>
+    <h1>歡迎使用行事曆應用</h1>
+    <p>請使用您的Google帳號登入以管理您的行事曆</p>
+    <a href="{{ url_for('login') }}" class="login-btn">使用 Google 帳號登入</a>
+</body>
+</html>

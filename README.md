@@ -1,89 +1,218 @@
-# Travel AI Agent – Smart Travel Assistant
+# Travel AI Agent - Smart Travel Assistant
 
-This is an intelligent assistant application that provides travel planning and itinerary management, leveraging artificial intelligence to help users quickly generate personalized travel plans.
+A comprehensive AI-powered travel planning solution that generates personalized itineraries by combining flight search, destination recommendations, and intelligent scheduling.
 
-## Project Overview
+## 🌟 Overview
 
-Travel AI Agent is a web application built with React, backed by a Python backend and AI models. It aims to simplify the travel planning process by integrating flight search, destination recommendations, itinerary scheduling, and travel management into a complete end-to-end travel solution.
+Travel AI Agent is a full-stack application built with React frontend and Python backend, integrated with AI models to deliver end-to-end travel planning. It simplifies trip organization by providing intelligent recommendations based on user preferences and optimizing travel routes.
 
-## Key Features
+## ✨ Key Features
 
-### 1. Basic Information Input
+### Basic Travel Information
+- **Departure/Destination Selection**: Support for IATA airport codes or city names
+- **Date Configuration**: Flexible travel duration planning with automatic calculations
 
-- **Departure and Destination Selection**: Supports IATA airport codes (e.g., LAX for Los Angeles International Airport) or city names
-- **Travel Date Configuration**: Allows users to select single or multiple travel days; the system will automatically calculate total trip duration
+### Flight Search & Selection
+- **Multi-Airline Comparison**: Comprehensive flight options across carriers
+- **Detailed Flight Information**: Times, airlines, flight numbers, and durations
+- **Connection Management**: Clear layover and transit time details
 
-### 2. Flight Search and Selection
+### Preference-Based Planning
+- **Activity Preferences**:
+  - Natural landscapes (mountains, beaches, lakes)
+  - Indoor attractions (museums, galleries)
+  - Historical and cultural sites
+  - Shopping destinations
+  - Theme parks, zoos, and aquariums
+  - Local and flea markets
+  - Night views and photography spots
+  - Family-friendly locations
+- **Customization**: Space for special requirements and expectations
 
-- **Compare Multiple Airlines**: Search and display flight options from various airlines
-- **Detailed Flight Information**: Includes departure/arrival times, airline, flight number, and duration
-- **Supports Connecting Flights**: Displays layover information and transit time details
+### Intelligent City Planning
+- **Daily City Mapping**: Plan different cities for each travel day
+- **Smart Recommendations**: AI-powered attraction, restaurant, and hotel suggestions
+- **Preference Filtering**: Tailored recommendations based on selected interests
+- **Flight Integration**: Schedules coordinated with flight timings
 
-### 3. Travel Preferences
+### AI-Powered Route Optimization
+- **Smart Sequencing**: Optimized visiting order based on distance, hours, and preferences
+- **Time Management**: Appropriate duration allocation for each location
+- **Flight-Aware Scheduling**: Itineraries adjusted to accommodate flight times
 
-- **Activity Preferences**: Users can choose from a variety of preferences, including:
-  - Natural landscapes (mountains, lakes, beaches)
-  - Indoor attractions (museums, art galleries, exhibitions)
-  - Historical and cultural sites (monuments, temples)
-  - Shopping (department stores, outlets, shopping streets)
-  - Theme parks / Zoos / Aquariums
-  - Local markets / Flea markets
-  - Night views / Night photography spots
-  - Family-friendly attractions
-- **Additional Notes**: Users may add special needs or expectations that the AI will consider in planning
+### Comprehensive Itinerary Management
+- **Detailed Daily Plans**: Activities with visit times and durations
+- **Integrated Travel Details**: Consolidated flight and accommodation information
+- **Visual Timeline**: Clear graphical representation of schedules
 
-### 4. Mapping and City Planning
+### Sharing & Synchronization
+- **Image Export**: One-click conversion to shareable image format
+- **Email Integration**: Direct sending to specified email addresses
+- **Calendar Sync**: Google Calendar integration for reminders and management
 
-- **Daily City Planning**: Input different cities for each day of the trip
-- **Search and Recommendations**: Search and recommend attractions, restaurants, and hotels in each city
-- **Preference-Based Filtering**: Filter recommendations based on selected preferences
-- **Flight Integration**: Incorporate flight arrival and departure times into daily plans
+## 🔧 Technical Architecture
 
-### 5. AI Route Planning
+### Frontend
+- React-based interactive user interface
+- Responsive design for multiple devices
 
-- **Smart Sorting**: AI arranges the visiting order by considering distance, opening hours, and user preferences
-- **Time Optimization**: AI sets appropriate durations for each stop to avoid overly tight or loose schedules
-- **Flight-Based Adjustments**: Itineraries are optimized according to flight arrival and departure times
+### Backend
+- Flask-based REST API service
+- Integration with multiple external services:
+  - Azure OpenAI / OpenAI for intelligent planning
+  - Amadeus API for flight information
+  - Google Maps API for location services
+  - Email services for sharing capabilities
 
-### 6. Itinerary Generation and Management
+### Core Technologies
+- **Real-Time Search**: Fast flight and location data retrieval
+- **AI Recommendation Engine**: Intelligent preference-based suggestions
+- **Maps Integration**: Location data and geographical optimization
+- **Calendar Synchronization**: Schedule export and management
 
-- **Full Itinerary Display**: Includes daily activities, visit times, and duration; click addresses to navigate directly
-- **Flight and Accommodation Integration**: Shows relevant flight and lodging details in the itinerary
-- **Visual Timeline**: Uses a visual timeline to clearly present daily schedules
+## 🚀 Setup & Requirements
 
-### 7. Sharing and Syncing Features
+### Prerequisites
+- Python 3.10+
+- Node.js and npm/yarn
+- API access credentials:
+  - Azure OpenAI / OpenAI
+  - Amadeus
+  - Google Maps
+  - Google App (for email features)
 
-- **Download Itinerary as Image**: Convert itinerary to an image file with one click
-- **Send via Email**: Send itineraries to a designated email address
-- **Google Calendar Sync**: Sync travel plans directly to Google Calendar for easier reminders and management  
-  (\*As this is a development project, email sending requires account authorization. Please contact us with your email to receive access.)
+### Environment Configuration
+Create a `.env` file with the following variables:
 
-## Technical Highlights
+```
+# Azure OpenAI settings
+AZURE_OPENAI_CHAT_DEPLOYMENT_NAME=your_deployment_name
+AZURE_OPENAI_ENDPOINT=your_endpoint
+AZURE_OPENAI_API_KEY=your_api_key
+AZURE_OPENAI_API_VERSION=your_api_version
 
-- **Real-Time Search**: Fast access to flight and place information
-- **AI Recommendation Algorithm**: Intelligent itinerary suggestions based on user preferences and trip duration
-- **Google Maps Integration**: Retrieves location and geographic data via Google Maps API
-- **Google Calendar Sync**: Allows itinerary synchronization with user calendars
+# Alternative: Standard OpenAI
+OPENAI_KEY=your_openai_key
 
-## User Flow
+# Amadeus API settings
+AMADEUS_API_KEY=your_amadeus_key
+AMADEUS_API_SECRET=your_amadeus_secret
 
-1. Enter basic travel details (departure, destination, date)
-2. Select preferred flights
-3. Set preferences and activity types
-4. Input cities for each day and generate recommended routes
-5. Review AI-generated itinerary
-6. Download or share the plan via email or Google Calendar
+# Google Maps configuration
+GOOGLE_MAPS_API_KEY=your_google_maps_key
 
-## Future Plans
+# Email configuration
+GOOGLE_APP_ID=your_google_app_key
+GOOGLE_PLANNER_MAIL=your_mail_sender
+```
 
-- Expand flight options to include number of adults, infants, and direct flight preferences
-- Allow specifying must-visit attractions
-- Add multi-language support
-- Integrate budget management features
-- Include real-time weather forecasts
-- Suggest local transportation methods
-- Enhance restaurant recommendations and booking features
+### Installation
+1. Clone the repository
+2. Install backend dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Install frontend dependencies:
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+### Running the Application
+- Backend:
+  ```bash
+  python main.py
+  ```
+  The API server will start on http://localhost:5000
+
+- Frontend:
+  ```bash
+  cd frontend
+  npm start
+  ```
+  The development server will start on http://localhost:3000
+
+## 📡 API Endpoints
+
+### Flight Search
+- **POST** `/search_flights`
+  - Search for available flights
+  - Request body:
+    ```json
+    {
+      "departure_city": "string",
+      "destination_city": "string",
+      "departureDate": "YYYY-MM-DD",
+      "returnDate": "YYYY-MM-DD",
+      "adults": integer,
+      "children": integer,
+      "infants": integer,
+      "nonStop": "true/false",
+      "currencyCode": "string"
+    }
+    ```
+
+### Travel Planning
+- **POST** `/plan_route`
+  - Generate optimized travel itinerary
+  - Request body: List of attractions with coordinates
+
+### Email Service
+- **POST** `/send_mail`
+  - Send travel plans via email
+  - Parameters:
+    - email: Recipient email address
+    - image: Base64 encoded image
+
+### Health Check
+- **GET** `/health`
+  - Check service health status
+
+## 🧭 User Flow
+
+1. Enter basic travel details (departure, destination, dates)
+2. Select preferred flights from options
+3. Configure activity preferences and special requirements
+4. Map out cities for each day of travel
+5. Review and adjust AI-generated itinerary
+6. Share or export final travel plan
+
+## 🔮 Future Enhancements
+
+- Advanced flight filtering (adults, infants, direct flights)
+- Must-visit attraction designation
+- Multi-language support
+- Budget management and tracking
+- Real-time weather integration
+- Local transportation recommendations
+- Restaurant booking capabilities
+
+## 📁 Project Structure
+
+```
+.
+├── frontend/               # React application
+│   ├── src/                # Source code
+│   ├── public/             # Static assets
+│   └── package.json        # Dependencies
+│
+├── backend/
+│   ├── main.py             # Flask application entry point
+│   ├── main_agent.py       # Core service implementations
+│   ├── plugins/
+│   │   ├── amadeus_plugin.py    # Amadeus API integration
+│   │   ├── google_map_plugin.py # Google Maps API integration
+│   │   └── google_mail_plugin.py # Gmail API integration
+│   ├── templates/          # HTML templates
+│   └── requirements.txt    # Python dependencies
+│
+└── README.md               # Project documentation
+```
+
+## 📜 License
+
+MIT License
 
 ---
 
-With Travel AI Agent, travel planning becomes smarter and more efficient, delivering a fully personalized travel experience.
+Travel AI Agent - Making travel planning smarter, faster, and more personalized.

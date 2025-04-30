@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flight Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: inline-block;
+            width: 120px;
+        }
+        input[type="text"],
+        input[type="date"],
+        input[type="number"] {
+            width: 200px;
+            padding: 5px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            white-space: pre-wrap;
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .error {
+            color: red;
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Flight Search</h1>
+    <div class="form-group">
+        <label for="departure_city">Departure:</label>
+        <input type="text" id="departure_city" placeholder="e.g. SYD" required>
+    </div>
+    <div class="form-group">
+        <label for="destination_city">Destination:</label>
+        <input type="text" id="destination_city" placeholder="e.g. BKK" required>
+    </div>
+    <div class="form-group">
+        <label for="departureDate">Departure Date:</label>
+        <input type="date" id="departureDate" required>
+    </div>
+    <div class="form-group">
+        <label for="returnDate">Return Date:</label>
+        <input type="date" id="returnDate">
+    </div>
+    <div class="form-group">
+        <label for="adults">Adults:</label>
+        <input type="number" id="adults" value="1" min="1" required>
+    </div>
+    <div class="form-group">
+        <label for="children">Children:</label>
+        <input type="number" id="children" value="0" min="0">
+    </div>
+    <div class="form-group">
+        <label for="infants">Infants:</label>
+        <input type="number" id="infants" value="0" min="0">
+    </div>
+    <div class="form-group">
+        <label for="nonStop">Non-stop only:</label>
+        <input type="checkbox" id="nonStop">
+    </div>
+    <div class="form-group">
+        <label for="currencyCode">Currency:</label>
+        <select id="currencyCode">
+            <option value="USD">USD</option>
+            <option value="TWD">TWD</option>
+            <option value="EUR">EUR</option>
+        </select>
+    </div>
+    <button onclick="searchFlights()">Search Flights</button>
+    <div id="result"></div>
+
+    <script>
+        // 設置日期輸入框的最小值為今天
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('departureDate').min = today;
+        document.getElementById('returnDate').min = today;
+
+        function searchFlights() {
+            const departureDate = document.getElementById('departureDate').value;
+            const returnDate = document.getElementById('returnDate').value;
+
+            const data = {
+                departure_city: document.getElementById('departure_city').value,
+                destination_city: document.getElementById('destination_city').value,
+                departureDate: departureDate + 'T16:00:00.000Z',
+                returnDate: returnDate ? returnDate + 'T16:00:00.000Z' : null,
+                adults: parseInt(document.getElementById('adults').value),
+                children: parseInt(document.getElementById('children').value),
+                infants: parseInt(document.getElementById('infants').value),
+                nonStop: document.getElementById('nonStop').checked,
+                currencyCode: document.getElementById('currencyCode').value,
+                activity_preferences: [],
+                notes: ''
+            };
+
+            // 顯示請求數據
+            document.getElementById('result').innerHTML = 'Sending request...<br>Data: ' + 
+                JSON.stringify(data, null, 2);
+
+            fetch('/search_flights', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById('result');
+                if (data.success === false) {
+                    resultDiv.innerHTML = '<div class="error">Error: ' + 
+                        data.error + '</div><br>Raw Response: ' + 
+                        JSON.stringify(data.raw_response, null, 2);
+                } else {
+                    resultDiv.innerHTML = '<pre>' + 
+                        JSON.stringify(data, null, 2) + '</pre>';
+                }
+            })
+            .catch(error => {
+                document.getElementById('result').innerHTML = 
+                    '<div class="error">Error: ' + error.message + '</div>';
+            });
+        }
+    </script>
+</body>
+</html>
