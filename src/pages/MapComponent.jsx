@@ -73,7 +73,6 @@ export const MapComponent = ({ userFlight, calculateDays,form }) => {
 
                   if (groupedData.length === cityInputs.length) {
                     setApiData(groupedData);
-                    console.log(groupedData);
                   }
                 }
               });
@@ -105,7 +104,6 @@ export const MapComponent = ({ userFlight, calculateDays,form }) => {
   const setFlightData = ()=>{
     const userFlightData =
     userFlight?.segments ?? flightMockData.data[0].segments;
-    console.log(userFlightData)
     // 取得使用者的往返航班資料，包含抵達時間、起降機場等資訊
     setFlightInfo(combineFlightInfo(
       userFlightData,
@@ -118,11 +116,13 @@ export const MapComponent = ({ userFlight, calculateDays,form }) => {
   const recommendRoutes = async () => {
     // 處理 API 資料
     setFlightData();
-    console.log(flightInfo)
+    const arrivalLocation = await getFlightInfo(flightInfo.arrival.iataCode)
+    const departureLocation = await getFlightInfo(flightInfo.departure.iataCode)
+
     let arrivalFlight = {
         name: flightInfo.arrival.iataCode, // 抵達機場代碼
-        latitude: null,
-        longitude: null,
+        latitude: arrivalLocation.lat,
+        longitude: arrivalLocation.lng,
         arrival_time: flightInfo.arrival.at, // 抵達時間
     };
 
@@ -130,8 +130,8 @@ export const MapComponent = ({ userFlight, calculateDays,form }) => {
     if(flightInfo.departure != 'noBackFlight'){
       departureFlight = {
           name: flightInfo.departure.iataCode, // 離開機場代碼
-          latitude: null,
-          longitude: null,
+          latitude: departureLocation.lat,
+          longitude: departureLocation.lng,
           arrival_time: flightInfo.departure.at, // 抵達時間
       };
     }
@@ -183,6 +183,26 @@ export const MapComponent = ({ userFlight, calculateDays,form }) => {
     } catch (error) {
       console.error("Error planning route:", error);
       alert("Unable to fetch AI-recommended routes. Please try again later.");
+    }
+  };
+
+  const getFlightInfo = async (iataCode) => {
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(iataCode + "機場")}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`;
+  
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      if (data.status !== "OK") {
+        return null; // 如果狀態不是 OK，返回 null
+      } else {
+        return data.results[0].geometry.location; // 返回結果
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      throw error; // 確保錯誤被傳遞
     }
   };
 
