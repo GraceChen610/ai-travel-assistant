@@ -18,7 +18,7 @@ export const MapComponent = ({ userFlight, calculateDays, form, setData }) => {
 
   const handleSearch = async () => {
     if (cityInputs.some((city) => city === "")) {
-      alert("請填寫所有城市名稱！");
+      alert("Please fill in all city names!");
       return;
     }
 
@@ -112,7 +112,7 @@ export const MapComponent = ({ userFlight, calculateDays, form, setData }) => {
         await recommendRoutes(groupedData);
       } catch (error) {
         console.error("Error in handleSearch:", error);
-        alert("搜尋過程中發生錯誤，請再試一次。");
+        alert("An error occurred while fetching data, please try again.");
       }
     }
   };
@@ -223,7 +223,7 @@ export const MapComponent = ({ userFlight, calculateDays, form, setData }) => {
     } catch (error) {
       console.error("Error planning route:", error);
       alert(
-        "Unable to fetch AI-recommended routes. Please try again later. Now the screen will be rendered using fake data"
+        "Unable to fetch AI-recommended routes. Please try again later. Now the screen will be rendered using mock data"
       );
 
       const itinerary = itineraryMockData.map((day, index) => {

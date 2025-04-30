@@ -87,12 +87,12 @@ export default function TravelPlanner() {
       if (result.data.length > 1) {
         setFlightSearchResults(result.data);
       } else {
-        alert("資料異常，將使用假資料渲染畫面。");
+        alert("Data error, rendering the page with mock data.");
         setFlightSearchResults(flightMockData.data);
       }
     } catch (error) {
       console.error("Error fetching flight data:", error);
-      alert("無法獲取航班資料，將使用假資料渲染畫面。");
+      alert("Unable to fetch flight data, rendering the page with mock data.");
       setFlightSearchResults(flightMockData.data);
     } finally {
       setLoading(false); // Set loading to false after fetching
