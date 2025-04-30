@@ -1,7 +1,9 @@
 import { useState, useRef } from "react";
 import { GoogleMap, useJsApiLoader } from "@react-google-maps/api";
-import { combineFlightInfo } from "../utils/function.js";
+import { combineFlightInfo, addDays } from "../utils/function.js";
 import { flightMockData } from "../mocks/flightMockData.js";
+import { itineraryMockData } from "../mocks/itineraryMockData.js";
+const BASEURL = import.meta.env.VITE_BASEURL;
 
 export const MapComponent = ({ userFlight, calculateDays, form, setData }) => {
   const mapRef = useRef(null);
@@ -194,16 +196,13 @@ export const MapComponent = ({ userFlight, calculateDays, form, setData }) => {
     });
 
     try {
-      const response = await fetch(
-        "https://tes-430078023071.asia-east1.run.app/plan_route",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ notes: form.notes, data: [...postData] }),
-        }
-      );
+      const response = await fetch(`${BASEURL}plan_route`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ notes: form.notes, data: [...postData] }),
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -211,13 +210,27 @@ export const MapComponent = ({ userFlight, calculateDays, form, setData }) => {
 
       const result = await response.json();
       console.log(result);
+
+      const itinerary = result.data.map((day, index) => {
+        day.date = addDays(form.departureDate, index); // index從0開始，所以第一天是+0，第二天是+1...
+        return day;
+      });
+
       setData((prev) => ({
         ...prev,
-        itinerary: result.data,
+        itinerary: itinerary,
       })); // 更新狀態
     } catch (error) {
       console.error("Error planning route:", error);
-      alert("Unable to fetch AI-recommended routes. Please try again later.");
+      alert(
+        "Unable to fetch AI-recommended routes. Please try again later. Now the screen will be rendered using fake data"
+      );
+
+      const itinerary = itineraryMockData.map((day, index) => {
+        day.date = addDays(form.departureDate, index); // index從0開始，所以第一天是+0，第二天是+1...
+        return day;
+      });
+      setData((prev) => ({ ...prev, itinerary: itinerary }));
     }
   };
 

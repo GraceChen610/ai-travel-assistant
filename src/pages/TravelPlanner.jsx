@@ -48,7 +48,7 @@ export default function TravelPlanner() {
   const [active, setActive] = useState(0);
   const [selectedId, setSelectedId] = useState(null);
   const [loading, setLoading] = useState(false); // Add loading state
-
+  const [email, setEmail] = useState("");
   const [form, setForm] = useState({
     departure_city: "LON", //旅客出發的城市/機場 IATA 代碼，例如SYD，亦可可傳中文地名
     destination_city: "LAX", //旅客抵達的城市/機場 IATA 代碼，例如BKK
@@ -61,7 +61,7 @@ export default function TravelPlanner() {
     currencyCode: "USD",
     activity_preferences: [],
     notes: "",
-    email: "",
+    email: email,
   });
 
   const [data, setData] = useState({
@@ -83,7 +83,7 @@ export default function TravelPlanner() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const result = await response.json();
-      console.log("Flight search result:", result);
+      // console.log("Flight search result:", result);
       if (result.data.length > 1) {
         setFlightSearchResults(result.data);
       } else {
@@ -109,11 +109,11 @@ export default function TravelPlanner() {
       setActive(1);
     }
     if (active === 1) {
-      console.log(
-        "選擇",
-        selectedFlightIndex,
-        flightSearchResults[selectedFlightIndex]
-      );
+      // console.log(
+      //   "選擇",
+      //   selectedFlightIndex,
+      //   flightSearchResults[selectedFlightIndex]
+      // );
       setData((prev) => {
         return {
           ...prev,
@@ -244,9 +244,7 @@ export default function TravelPlanner() {
         <Text size="sm">
           <strong>Activity Preferences：</strong>
         </Text>
-        <Text size="sm">
-          {form.activity_preferences.join("、") || "none"}
-        </Text>
+        <Text size="sm">{form.activity_preferences.join("、") || "none"}</Text>
       </Group>
 
       <Group spacing="xs" mt="xs">
@@ -261,56 +259,84 @@ export default function TravelPlanner() {
     </Paper>
   );
 
-  const EmailPanel = () => (
-    <Paper p="md" radius="xl" shadow="md" withBorder bg="#fffffc" w={310}>
-      <Title order={4} mb="sm" color="pink.6" style={{ color: themeColor }}>
-        📋 Send the itinerary to the email address
-      </Title>
-      <Divider mb="sm" />
+  // 修改 EmailPanel 組件
+  const EmailPanel = () => {
+    // 使用本地狀態來處理 email 輸入
+    const [localEmail, setLocalEmail] = useState(form.email);
 
-      <Group spacing="xs" mb={6} justify="center">
-        <TextInput
-          label="Please enter your email."
-          size="xs"
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-          w={260}
-          styles={{
-            input: { borderRadius: "6px" },
-          }}
-        />
+    // 只在點擊發送按鈕時才更新父組件的 form 狀態
+    const handleSendEmail = async () => {
+      // 更新 form 狀態
+      setForm((prev) => ({ ...prev, email: localEmail }));
+      // 執行發送操作
+      await captureAndDownload();
+    };
 
-        <Button
-          onClick={captureAndDownload}
-          color={themeColor}
-          variant="outline"
-        >
-          Send & Download
-        </Button>
-      </Group>
-    </Paper>
-  );
+    return (
+      <Paper p="md" radius="xl" shadow="md" withBorder bg="#fffffc" w={310}>
+        <Title order={4} mb="sm" color="pink.6" style={{ color: themeColor }}>
+          📋 Send the itinerary to the email address
+        </Title>
+        <Divider mb="sm" />
+
+        <Group spacing="xs" mb={6} justify="center">
+          <TextInput
+            label="Please enter your email."
+            size="xs"
+            value={localEmail}
+            onChange={(e) => setLocalEmail(e.target.value)}
+            w={260}
+            styles={{
+              input: { borderRadius: "6px" },
+            }}
+          />
+
+          <Button
+            onClick={handleSendEmail}
+            color={themeColor}
+            variant="outline"
+          >
+            Send & Download
+          </Button>
+        </Group>
+      </Paper>
+    );
+  };
 
   const captureAndDownload = async () => {
     const element = document.getElementById("itinerary"); // 行程表的 DOM 元素
     const canvas = await html2canvas(element);
     const dataUrl = canvas.toDataURL("image/png");
 
-    // 可選：下載
+    // 下載
     const link = document.createElement("a");
     link.href = dataUrl;
     link.download = "itinerary.png";
     link.click();
 
-    const formData = new FormData();
-    formData.append("image", dataUrl); // 傳 base64 字串
-    formData.append("email", form.email);
+    // 只有當 email 存在時才發送
+    if (form.email) {
+      const formData = new FormData();
+      formData.append("image", dataUrl); // 傳 base64 字串
+      formData.append("email", form.email);
 
-    // 或：上傳到後端寄信
-    await fetch(`${BASEURL}send_mail`, {
-      method: "POST",
-      body: formData,
-    });
+      try {
+        // 上傳到後端寄信
+        const response = await fetch(`${BASEURL}send_mail`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (response.ok) {
+          alert("Email sent successfully!");
+        } else {
+          alert("Failed to send email. Please try again.");
+        }
+      } catch (error) {
+        console.error("Error sending email:", error);
+        alert("Error sending email: " + error.message);
+      }
+    }
   };
 
   /**API */
