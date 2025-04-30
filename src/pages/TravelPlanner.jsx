@@ -523,17 +523,17 @@ export default function TravelPlanner() {
               <Stack mt="xl">
                 <div>
                   <Text color="#59a803" mb="sm">
-                    <strong> 活動偏好</strong>
+                    <strong> Activity Preferences</strong>
                   </Text>
-                  {[
-                    "自然景觀（山岳、湖泊、沙灘）",
-                    "室內景點（博物館、美術館、展覽館）",
-                    "歷史文化（古蹟、寺廟）",
-                    "百貨公司 / outlet / 購物街",
-                    "主題樂園 / 動物園 / 水族館",
-                    "當地市集 / 跳蚤市場",
-                    "夜景 / 夜間打卡景點",
-                    "親子友善",
+                  { [
+                    "Natural Scenery (Mountains, Lakes, Beaches)",
+                    "Indoor Attractions (Museums, Art Galleries, Exhibition Halls)",
+                    "Historical and Cultural Sites (Monuments, Temples)",
+                    "Shopping (Department Stores, Outlets, Shopping Streets)",
+                    "Theme Parks / Zoos / Aquariums",
+                    "Local Markets / Flea Markets",
+                    "Night Views / Nighttime Photo Spots",
+                    "Family-Friendly",
                   ].map((item) => (
                     <Checkbox
                       key={item}
@@ -548,7 +548,7 @@ export default function TravelPlanner() {
                 </div>
                 <div>
                   <Textarea
-                    label="📝 需求備註"
+                    label="📝 Notes"
                     value={form.notes}
                     onChange={(e) =>
                       setForm({ ...form, notes: e.target.value })
