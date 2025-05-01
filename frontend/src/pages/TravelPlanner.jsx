@@ -336,12 +336,6 @@ export default function TravelPlanner() {
     const canvas = await html2canvas(element);
     const dataUrl = canvas.toDataURL("image/png");
 
-    // 下載
-    const link = document.createElement("a");
-    link.href = dataUrl;
-    link.download = "itinerary.png";
-    link.click();
-
     // 只有當 email 存在時才發送
     if (form.email) {
       const formData = new FormData();
@@ -365,6 +359,12 @@ export default function TravelPlanner() {
         alert("Error sending email: " + error.message);
       }
     }
+
+    // 下載
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = "itinerary.png";
+    link.click();
   };
 
   /**API */
