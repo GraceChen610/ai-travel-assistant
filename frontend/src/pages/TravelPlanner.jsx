@@ -89,19 +89,12 @@ export default function TravelPlanner() {
       type: ["department_store", "shopping_mall", "store"],
     },
     {
-      label: "Theme Parks / Zoos / Aquariums",
-      type: ["amusement_park", "zoo", "aquarium"],
+      label: "movie theater",
+      type: ["movie_theater"],
     },
     {
-      label: "Family-Friendly",
-      type: [
-        "amusement_park",
-        "aquarium",
-        "zoo",
-        "park",
-        "playground",
-        "movie_theater",
-      ],
+      label: "Family-Friendly (Theme Parks / Zoos / Aquariums)",
+      type: ["amusement_park", "aquarium", "zoo", "park"],
     },
   ];
 
